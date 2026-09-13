@@ -12,9 +12,9 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.45b"
+    const SCRIPT_VERSION = "v4.5b"
 
-    var SET_PROFILE = 2
+    var SET_PROFILE = 1
 
     if (!localStorage.getItem("DEBUG_PROFILE")) {
         localStorage.setItem("DEBUG_PROFILE", SET_PROFILE);
@@ -39,7 +39,7 @@
             SoundPlayWhenArrived: true,         // play a sound when a highlighted trip changes to 'ARRIVED'
             SoundPlayWhenStarted: true,         // play a sound when a highlighted trip changes from 'ARRIVED' to 'STARTED'
 
-            SoundForNewTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0215%20-%20More%20Menu%20Stuff.mp3",
+            SoundForNewTrip: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0215%20-%20More%20Menu%20Stuff.mp3",
             VolumeNewTrip: 0.06,                 // volume: 0 - 1 (e.g: 0.5, 0.1, 0.9)
 
             SoundForNewAppTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3",
@@ -338,6 +338,548 @@
         cursor: pointer;
         filter: brightness(120%);
     }
+
+    /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+  /* v4.21 */
+
+  :root {
+    /* vv PROFILE 1 OPTIONS vv*/
+    
+    --duplicate-booking-color: #ffe0a3;
+
+    --own-booking-color: #dcd3de;
+    --app-booking-color: #d6d0e9;
+
+    --whatsapp-tripcolour: #659a60;
+
+    --whatsapp-chat-window-size: 110%;
+    --whatsapp-chat-window-move-X: -40px;
+    --whatsapp-chat-window-move-Y: -40px;
+    --whatsapp-chat-window-height: 50%;
+
+    --phonenumber-base-color: #4f4c79;
+    --phonenumber-click-color: #c52828;
+
+    --lookup-highlight-tripcolour: #a426af;
+    --lookup-highlight-trip-background-colour: #f8e6fa;
+
+    /* ^^ PROFILE 1 OPTIONS ^^ */
+
+    --new-yellow: #b97229;
+    --new-green: #00763F;
+    --bk-new: var(--new-yellow);
+    --bk-finish: var(--new-yellow);
+
+    --darker-phonenums: color-mix(in srgb, var(--phonenumber-base-color), black 40%);
+    --evendarker-phonenums: color-mix(in srgb, var(--phonenumber-base-color), black 70%);
+
+    --d-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 40%);
+    --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
+
+    --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  }
+
+  tr[role="row"] td[role="cell"] {
+    /*outline: 1px solid rgb(58, 56, 56);*/
+  }
+
+  /*
+  .p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh) {
+    outline: 2px solid red;
+  }
+    */
+
+  .MuiAutocomplete-popper {
+    border: 1px solid gray;
+    border-radius: 6px;
+  }
+
+  * {
+    /* disable transitions */
+    transition: none !important;
+  }
+
+  #adsettings_dialog {
+    outline: none;
+    border: none;
+
+    outline: 1px solid gray;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: start;
+    width: 100rem;
+    height: 50rem;
+
+    padding: 2rem;
+    border-radius: 6px;
+
+    box-sizing: border-box;
+
+    gap: 20px;
+  }
+
+  #adsettings_dialog .sidebar {
+    width: 20rem;
+    height: 100%;
+
+    border-right: 1px solid gray;
+
+    display: flex;
+    flex-direction: column;
+    align-items: start;
+    justify-content: start;
+    
+    box-sizing: border-box;
+
+    padding-right: 20px;
+    gap: 20px;
+  }
+
+  #adsettings_dialog .sidebarElementselect {
+    outline: 1px solid white;
+    border-radius: 4px;
+
+    width: 100%;
+    padding: 1rem;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+
+    gap: 10px;
+    font-size: 1.2rem;
+
+    box-sizing: border-box;
+
+    transform: scale(1.05);
+  }
+
+  #adsettings_dialog .sidebarElementunselect {
+    outline: 1px dashed gray;
+    border-radius: 1px;
+
+    width: 100%;
+    padding: 1rem;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: start;
+
+    gap: 10px;
+    font-size: 1.2rem;
+
+    box-sizing: border-box;
+  }
+
+  .flex-column {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .flex-row {
+    display: flex;
+    flex-direction: row;
+  }
+
+  .p-scrollpanel-bar {
+    background: white !important;
+  }
+
+  .newReadButton-disabled {
+    width: 100%;
+
+    background-color: #000;
+    color: #768178;
+    border: 2px dashed #768178;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    padding: 20px;
+    margin-bottom: 15px; 
+    cursor: not-allowed;
+  }
+
+  .newReadButton-active {
+    width: 100%;
+    
+    background-color: #121b10;
+    color: #ecffee;
+    border: 2px solid #77da77;
+    border-radius: 6px;
+    font-size: 1.2rem;
+    padding: 20px;
+    margin-bottom: 15px; 
+    cursor: pointer;
+  }
+
+  .booksStatisticsCont {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+
+    padding: 4px;
+    margin-left: 6px;
+    margin-right: 6px;
+
+    border-radius: 4px;
+    outline: 2px solid gray;
+
+    width: auto;
+    padding-left: 12px;
+    padding-right: 12px;
+
+    color: #000;
+  }
+
+  .booksStatisticsCont * {
+    color: #000;
+  }
+
+  .filterHide {
+    filter: brightness(50%);
+  }
+
+  .filterBlur {
+    filter: blur(150%);
+  }
+
+  .whatsappstate_new {
+    outline: 2px dashed #ebad28 !important;
+    border: none !important;
+  }
+
+  .whatsappstate_accepted {
+    outline: 2px solid #2862dd !important;
+    border: none !important;
+  }
+
+  .whatsappstate_arrived {
+    outline: 2px dashed #d45134 !important;
+    border: none !important;
+  }
+
+  .whatsappstate_started {
+    outline: 2px solid #369950 !important;
+    border: none !important;
+  }
+
+  .whatsappstate_reached_paid {
+    outline: 2px dashed #2e7742 !important;
+    border: none !important;
+  }
+
+
+  .flex.align-items-center.bg-white.p-3.gap-3.border-bottom-1.surface-border.cursor-pointer.mb-1 {
+    outline: 2px solid gray;
+
+    margin-left: 15px;
+    margin-right: 15px;
+    margin-bottom: 15px !important;
+    border-radius: 12px;
+  }
+
+
+  .flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1 {
+    background: #1d1d22 !important;
+    border-bottom: 2px solid gray;
+    box-shadow: var(--shadow1);
+  }
+  
+  .ns-lookupfield {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+
+    outline: 2px solid #363535;
+    border-radius: 4px;
+    gap: 8px;
+
+    width: 100%;
+    height: auto;
+  }
+
+  .ns-lookupfield input {
+    box-sizing: border-box;
+    background-color: var(--lookup-highlight-trip-background-colour);
+    border: 1px solid var(--lookup-highlight-tripcolour);
+    border-radius: 4px;
+    width: 100%;
+    padding: 10px;
+    height: 50px;
+  }
+
+  .newsettings {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: start;
+    align-items: start;
+
+    background-color: #000;
+    outline: 1px solid rgb(126, 115, 115);
+    border-radius: 8px;
+
+    padding: 12px;
+
+    position: fixed;
+    z-index: 999;
+    inset: auto 180px 90px auto;
+    gap: 12px;
+    width: auto;
+    height: auto;
+  }
+
+  .newsettings span {
+  color: #fff;
+  }
+
+  .ns-wrapcolumn {
+    display: flex;
+    flex-direction: column;
+    max-height: 300px;
+    width: auto;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  .ns-row {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+    align-items: start;
+    color: #fff;
+    padding: 10px;
+    gap: 10px;
+    width: 300px;
+
+    border: 2px solid green;
+    border-radius: 6px;
+
+
+    font-size: 14px;
+    text-align: center;
+    cursor: pointer;
+    background-color: #1d1c1c;
+  }
+
+  #OPEN_CONFIG {
+    border-color: #fff;
+    background-color: #373a3b;
+  }
+
+  .ns-row:hover {
+    /*filter: brightness(120%);*/
+  }
+
+  .ns-row:hover * {
+    color: rgb(153, 201, 153);
+  }
+
+  .ns-row:active {
+    /*filter: brightness(80%);*/
+  }
+
+  img[isbookingicon] {
+    background-color: #000;
+    border-radius: 4px;
+  }
+
+
+  .timeDiffAccepted {
+    background-color: #2c63b6;
+    border: 2px solid color-mix(in srgb, #2c63b6, black 70%);
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  .timeDiffArrived {
+    background-color: #bb5f48;
+    border: 2px solid color-mix(in srgb, #bb5f48, black 70%);
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  .timeDiffBooked {
+    background-color: #405745;
+    border: 2px solid color-mix(in srgb, #405745, black 70%);
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+
+  .selectedDriverTag {
+    background-color: #282c35;
+    border: 2px solid color-mix(in srgb, #282c35, black 70%);
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  .selectedDriverTagDupe {
+    background-color: #996428;
+    border: 2px solid color-mix(in srgb, #282c35, #570000 70%);
+    padding-left: 8px;
+    padding-right: 8px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  .acceptedWarn-highlight {
+    outline: 3px solid #4c64a7;
+    filter: brightness(120%);
+    box-shadow: var(--shadow1);
+  }
+
+  .arrivedWarn-highlight {
+    outline: 3px solid #a74f4c;
+    filter: brightness(120%);
+    box-shadow: var(--shadow1);
+  }
+
+  .whatsapp-highlight {
+    outline: 4px solid var(--whatsapp-tripcolour);
+    filter: brightness(130%);
+    box-shadow: var(--shadow1);
+  }
+
+  .lookup-highlight {
+    outline: 4px solid var(--lookup-highlight-tripcolour);
+    /*filter: brightness(130%);*/
+    box-shadow: var(--shadow1);
+
+    background: var(--lookup-highlight-trip-background-colour) !important;
+  }
+
+  .setting-buttonbase {
+    box-shadow: var(--shadow1);
+    position: fixed;
+    z-index: 99;
+    inset: auto 180px 30px auto;
+    width: 150px;
+    height: 45px;
+
+    text-align: center;
+    font-family: "Segoe UI";
+    font-weight: bold;
+    justify-content: center;
+
+    padding: 6px;
+    background: var(--native-dark-bg-color);
+    color: white;
+
+    border-radius: 6px;
+    outline: 2px solid white;
+    border: none;
+
+    transition: 0.2s all ease-in-out;
+  }
+
+  .container-bookinginfo {
+    inset: auto 1000px 30px auto;
+    width: 900px !important;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    outline: 1px solid black !important;
+  }
+
+  .container-bookinginfo span {
+    font-weight: lighter;
+  }
+
+  .container-bookinginfo:hover {
+    filter: none !important;
+    cursor: default !important;
+  }
+
+  .setting-fetchbookings {
+    inset: auto 580px 30px auto;
+  }
+
+  .setting-checkapptrips {
+    inset: auto 380px 30px auto;
+  }
+
+  .setting-newchecker {
+    inset: auto 180px 30px auto;
+  }
+
+  .setting-buttonbase {
+    position: fixed;
+    z-index: 99;
+    width: 150px;
+    height: 45px;
+
+    text-align: center;
+    font-family: "Segoe UI";
+    font-weight: bold;
+    justify-content: center;
+
+    padding: 6px;
+    background: var(--native-dark-bg-color);
+    color: white;
+
+    border-radius: 6px;
+    outline: 2px solid white;
+    border: none;
+
+    transition: 0.2s all ease-in-out;
+  }
+
+  .setting-buttonbase:hover {
+    filter: brightness(120%);
+    cursor: pointer;
+  }
+
+  .owntrip {
+    background: var(--own-booking-color) !important;
+  }
+
+  .alt-owntrip {
+    background: var(--app-booking-color) !important;
+  }
+
+  .notif-arrived {
+    outline: 1px solid var(--arrived-orange);
+  }
+
+  .cust_phonecopy,
+  a.cust_phonecopy,
+  a[href^="tel:"].cust_phonecopy {
+    color: var(--phonenumber-click-color) !important;
+    background-color: #e6e2f0;
+    outline: 2px dashed var(--d-phonecopy) !important;
+  }
+
+  a[href^="tel:"] {
+    color: var(--phonenumber-base-color) !important;
+    background-color: #e6e2f0;
+    outline: 1px solid var(--darker-phonenums) !important;
+    border-radius: 3px !important;
+  }
+
+
+
+  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
     `;
     document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -1118,6 +1660,11 @@
                                 }
                             }
 
+                            if (lookupData1 == "DEBUG_PLAYSOUND_NEW") {
+                                newtripSound.play();
+                                lookupTextField1.value = "DEBUG_RESPONSE_SUCCESFUL"
+                            }
+
                             if (!lookupData1 || lookupData1 == " ") {
                                 lookupTextField1.value = "";
                                 isOneEmpty = true;
@@ -1208,7 +1755,7 @@
                         }
                     }
 
-                    global_wspTextbox.addEventListener("input", (event) => {
+                    global_wspTextbox.addEventListener("change", (event) => {
                         data_Wsp_TextboxContent[wspNumber] = global_wspTextbox.value;
                     })
                 }
@@ -1222,6 +1769,7 @@
 
                     const refreshButton = document.createElement('button');
                     refreshButton.id = refreshID;
+                    refreshButton.style.background = "#000";
 
                     const iconImage = document.createElement('img');
                     iconImage.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIiB3aWR0aD0iMjAiIGhlaWdodD0iMjAiPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik04NC41MzkgMjEuNTg2YTEuNTE1IDEuNTE1IDAgMCAwLTIuMzkzLTEuMjIybC01Ljk0NCA0LjI2MWwtLjQ2OC4zMzdjLTYuNDA1LTYuMzkyLTE1LjE5Ni0xMC4zODktMjQuOTM3LTEwLjM4OWMtMTkuNTM1IDAtMzUuNDI3IDE1Ljg5NC0zNS40MjcgMzUuNDI4czE1Ljg5MyAzNS40MjggMzUuNDI3IDM1LjQyOGEzNS40MiAzNS40MiAwIDAgMCAyOS4zNzQtMTUuNjE4YTEuNzcgMS43NyAwIDAgMC0uNDc1LTIuNDYybC04Ljg2My02LjE1MWExLjkgMS45IDAgMCAwLTIuNjI4LjUxMmMtMy45MTggNS43OTItMTAuNDEgOS4yNS0xNy4zNzUgOS4yNWMtMTEuNTU4IDAtMjAuOTYyLTkuNDAyLTIwLjk2Mi0yMC45NTdzOS40MDQtMjAuOTU3IDIwLjk2Mi0yMC45NTdjNC44NzggMCA5LjM1MiAxLjY5NiAxMi45MTQgNC41bC0xLjAwMS43MmwtNS45NDggNC4yNmExLjUxMyAxLjUxMyAwIDAgMCAuMzk3IDIuNjU2bDI1LjQ0NiA4LjY2OWMuNDYxLjE2MS45NjYuMDgzIDEuMzY4LS4yMDNjLjM5OS0uMjkuNjI5LS43NDcuNjI3LTEuMjMxeiIvPjwvc3ZnPg=="
@@ -1287,7 +1835,6 @@
                             stats_NewTrips.style.color = "#242424";
                         } else {
                             stats_NewTrips.style.background = "none";
-                            stats_NewTrips.style.color = "#DCDCDC";
                         }
 
                         stats_NewTrips.addEventListener("click", () => {
@@ -1297,7 +1844,6 @@
                                 stats_NewTrips_toggled = true;
                             } else {
                                 stats_NewTrips.style.background = "none";
-                                stats_NewTrips.style.color = "#DCDCDC";
                                 stats_NewTrips_toggled = false;
                             }
                         })
@@ -1318,7 +1864,6 @@
                             stats_NewAppTrips.style.color = "#242424";
                         } else {
                             stats_NewAppTrips.style.background = "none";
-                            stats_NewAppTrips.style.color = "#DCDCDC";
                         }
 
                         stats_NewAppTrips.addEventListener("click", () => {
@@ -1328,7 +1873,6 @@
                                 stats_NewAppTrips_toggled = true;
                             } else {
                                 stats_NewAppTrips.style.background = "none";
-                                stats_NewAppTrips.style.color = "#DCDCDC";
                                 stats_NewAppTrips_toggled = false;
                             }
                         })
@@ -1349,7 +1893,6 @@
                             stats_AccTrips.style.color = "#242424";
                         } else {
                             stats_AccTrips.style.background = "none";
-                            stats_AccTrips.style.color = "#DCDCDC";
                         }
 
                         stats_AccTrips.addEventListener("click", () => {
@@ -1359,7 +1902,6 @@
                                 stats_AccTrips_toggled = true;
                             } else {
                                 stats_AccTrips.style.background = "none";
-                                stats_AccTrips.style.color = "#DCDCDC";
                                 stats_AccTrips_toggled = false;
                             }
                         })
@@ -1381,7 +1923,6 @@
                             stats_ArrTrips.style.color = "#242424";
                         } else {
                             stats_ArrTrips.style.background = "none";
-                            stats_ArrTrips.style.color = "#DCDCDC";
                         }
 
                         stats_ArrTrips.addEventListener("click", () => {
@@ -1391,7 +1932,6 @@
                                 stats_ArrTrips_toggled = true;
                             } else {
                                 stats_ArrTrips.style.background = "none";
-                                stats_ArrTrips.style.color = "#DCDCDC";
                                 stats_ArrTrips_toggled = false;
                             }
                         })
@@ -1413,7 +1953,6 @@
                             stats_StaTrips.style.color = "#242424";
                         } else {
                             stats_StaTrips.style.background = "none";
-                            stats_StaTrips.style.color = "#DCDCDC";
                         }
 
                         stats_StaTrips.addEventListener("click", () => {
@@ -1423,7 +1962,6 @@
                                 stats_StaTrips_toggled = true;
                             } else {
                                 stats_StaTrips.style.background = "none";
-                                stats_StaTrips.style.color = "#DCDCDC";
                                 stats_StaTrips_toggled = false;
                             }
                         })
@@ -1446,7 +1984,6 @@
                             stats_FinTrips.style.color = "#242424";
                         } else {
                             stats_FinTrips.style.background = "none";
-                            stats_FinTrips.style.color = "#DCDCDC";
                         }
 
                         stats_FinTrips.addEventListener("click", () => {
@@ -1456,7 +1993,6 @@
                                 stats_FinTrips_toggled = true;
                             } else {
                                 stats_FinTrips.style.background = "none";
-                                stats_FinTrips.style.color = "#DCDCDC";
                                 stats_FinTrips_toggled = false;
                             }
                         })
@@ -1565,6 +2101,7 @@
         iconImage.setAttribute("height", "20px")
 
         settingsOpenBT.style.outlineColor = "white";
+        settingsOpenBT.style.background = "black";
 
         settingsOpenBT.classList.add("setting-buttonbase");
         settingsOpenBT.style.inset = "auto 180px 30px auto"
