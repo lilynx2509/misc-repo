@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.5b"
+    const SCRIPT_VERSION = "v4.5"
 
     var SET_PROFILE = 1
 
@@ -31,7 +31,8 @@
 
             HighlightTripsFrom: [               // whose trips to highlight in the dashboard
                 "Samuel Martinez",
-                "Santiago Martinez"
+                "Santiago Martinez",
+                "(Watched)",
             ],
 
             SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
@@ -42,13 +43,13 @@
             SoundForNewTrip: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0215%20-%20More%20Menu%20Stuff.mp3",
             VolumeNewTrip: 0.06,                 // volume: 0 - 1 (e.g: 0.5, 0.1, 0.9)
 
-            SoundForNewAppTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3",
+            SoundForNewAppTrip: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0896%20-%20Surprise%20Box%20&%20Ten-Yeti%20-%20Miss.mp3",
             VolumeNewAppTrip: 0.06,
 
-            SoundForArrivedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0210%20-%20Menu%20Selection.mp3",
+            SoundForArrivedTrip: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0210%20-%20Menu%20Selection.mp3",
             VolumeArrivedTrip: 0.4,
 
-            SoundForStartedTrip: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0213%20-%20Unknown%20Menu%20Sound.mp3",
+            SoundForStartedTrip: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0213%20-%20Unknown%20Menu%20Sound.mp3",
             VolumeStartedTrip: 0.4,
 
             HighlightwspTrip: true,        // highlight a trip if the currently open whatsapp chat matches the phone number (no sound notifications)
@@ -67,10 +68,10 @@
 
             TimeAlertsForAppTrips: false,       // (toggleable) if to highlight and send sound warnings of the accepted and arrived trips for app trips
 
-            SoundForAcceptedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0222%20-%20Almost%20Like%20You%20Failed%20To%20Select.mp3",
+            SoundForAcceptedAlert: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0222%20-%20Almost%20Like%20You%20Failed%20To%20Select.mp3",
             VolumeAcceptedAlert: 0.4,
 
-            SoundForArrivedAlert: "https://github.com/AetherLynx/misc-repo/raw/refs/heads/main/0107%20-%20Getting%20An%20Item.mp3",
+            SoundForArrivedAlert: "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0107%20-%20Getting%20An%20Item.mp3",
             VolumeArrivedAlert: 0.4,
 
             HighlightTodaysTrips: true,         // (toggleable) if to highlight todays trips and desaturate trips which arent || 3.2: now works for ALL trips
@@ -119,6 +120,7 @@
             // v4.5 options
 
             KeepWspChatboxContent: true,        // if to save what u were writing on a chatbox to prevent interrumptions (like receiving a new chat)
+            EnableDarkFilter: false,            // if to enable custom dark filter
         }
     }
 
@@ -131,8 +133,7 @@
 
             HighlightTripsFrom: [               // whose trips to highlight in the dashboard
                 "Santiago Martinez",
-                "Nombre ejemplo",
-                "Nombre ejemplo",
+                "(Watched)",
             ],
 
             SoundPlayWhenNew: true,             // default option to constantly play a sound when a highlighted trip is on 'NEW'
@@ -218,6 +219,7 @@
             // v4.5 options
 
             KeepWspChatboxContent: true,        // if to save what u were writing on a chatbox to prevent interrumptions (like receiving a new chat)
+            EnableDarkFilter: false,            // if to enable custom dark filter
         }
     }
 
@@ -288,123 +290,121 @@
     var stats_StaTrips_toggled = false;
     var stats_FinTrips_toggled = false;
 
+    var global_unreadMsgAmount = 0;
+
     var style = document.createElement('style');
     style.type = 'text/css';
     style.id = "dark-mode-custom-style";
-    style.innerHTML = `
-    .filterGlow {
-        filter: brightness(150%) contrast(120%);
-        outline: 2px dashed #FFF !important;
-    }
+    style.innerHTML = /*css*/`
+    :root {
+    /* vv OPTIONS vv*/
 
-    .booksStatisticsCont {
-        cursor: pointer;
-        user-select: none;
-    }
-        
-    .selectedDriverTagBadOutline {
-      border: 2px solid #af0b0b !important;
-    }
-        
-    .selectedDriverTagGoodOutline {
-      border: 2px solid #26aa1a !important;
-    }
-
-    .refreshButtonClass {
-        box-shadow: var(--shadow1);
-        position: fixed;
-        z-index: 99;
-        inset: auto 180px 30px auto;
-        width: 50px;
-        height: 45px;
-
-        text-align: center;
-        font-family: "Segoe UI";
-        font-weight: bold;
-        justify-content: center;
-
-        padding: 6px;
-        background: var(--native-dark-bg-color);
-        color: white;
-
-        border-radius: 6px;
-        outline: 2px solid #a8fab9;
-        border: none;
-
-        transition: 0.2s all ease-in-out;
-    }
-
-    .refreshButtonClass:hover {
-        cursor: pointer;
-        filter: brightness(120%);
-    }
-
-    /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-  /* v4.21 */
-
-  :root {
-    /* vv PROFILE 1 OPTIONS vv*/
-    
     --duplicate-booking-color: #ffe0a3;
-
-    --own-booking-color: #dcd3de;
-    --app-booking-color: #d6d0e9;
-
+    --own-booking-color: #edfaee;
+    --app-booking-color: #e0e0e0;
     --whatsapp-tripcolour: #659a60;
-
-    --whatsapp-chat-window-size: 110%;
-    --whatsapp-chat-window-move-X: -40px;
-    --whatsapp-chat-window-move-Y: -40px;
-    --whatsapp-chat-window-height: 50%;
-
     --phonenumber-base-color: #4f4c79;
     --phonenumber-click-color: #c52828;
-
     --lookup-highlight-tripcolour: #a426af;
     --lookup-highlight-trip-background-colour: #f8e6fa;
 
-    /* ^^ PROFILE 1 OPTIONS ^^ */
+    /* ^^ OPTIONS ^^ */
 
     --new-yellow: #b97229;
     --new-green: #00763F;
     --bk-new: var(--new-yellow);
     --bk-finish: var(--new-yellow);
-
     --darker-phonenums: color-mix(in srgb, var(--phonenumber-base-color), black 40%);
     --evendarker-phonenums: color-mix(in srgb, var(--phonenumber-base-color), black 70%);
-
     --d-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 40%);
     --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
-
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
-  }
+}
 
-  tr[role="row"] td[role="cell"] {
-    /*outline: 1px solid rgb(58, 56, 56);*/
-  }
+.cssSettingsInput {
+    padding: 8px;
+    background: #000;
+    color: #fff;
+    border: 2px solid #f0d9d9;
+    border-radius: 4px;
+}
 
-  /*
-  .p-button.p-component.p-button-icon-only.p-button-secondary:has(.p-button-icon.p-c.pi.pi-refresh) {
-    outline: 2px solid red;
-  }
-    */
 
-  .MuiAutocomplete-popper {
+/* WHATSAPP OBFUSCATE */
+
+.flex-column.fixed.overflow-hidden.z-5.md\\:w-30rem.border-round-lg.surface-100.shadow-4.chat-container:has(button.p-button.p-component.close-btn.p-button-icon-only.p-button-rounded.p-button-danger:hover) {
+    outline: 4px solid black;
+    opacity: 0.2;
+}
+
+.flex-column.fixed.overflow-hidden.z-5.md\\:w-30rem.border-round-lg.surface-100.shadow-4.chat-container button.p-button.p-component.close-btn.p-button-icon-only.p-button-rounded.p-button-danger {
+    transform: scale(1.2);
+}
+
+.filterDark {
+    filter: invert(85%) hue-rotate(180deg) brightness(100%) contrast(110%);
+}
+
+/* Aplica el filtro inverso exacto para restaurar el mapa */
+html.filterDark #map {
+    filter: invert(100%) hue-rotate(180deg) brightness(115%) contrast(100%) !important;
+}
+
+.filterGlow {
+    outline: 4px solid #ac3636 !important;
+}
+
+.booksStatisticsCont {
+    cursor: pointer;
+    user-select: none;
+}
+
+.selectedDriverTagBadOutline {
+    border: 2px solid #da0000 !important;
+}
+
+.selectedDriverTagGoodOutline {
+    border: 2px solid #117907 !important;
+}
+
+.refreshButtonClass {
+    box-shadow: var(--shadow1);
+    position: fixed;
+    z-index: 99;
+    inset: auto 180px 30px auto;
+    width: 50px;
+    height: 45px;
+    text-align: center;
+    font-family: "Segoe UI";
+    font-weight: bold;
+    justify-content: center;
+    padding: 6px;
+    background: var(--native-dark-bg-color);
+    color: white;
+    border-radius: 6px;
+    outline: 2px solid #a8fab9;
+    border: none;
+    transition: 0.2s all ease-in-out;
+}
+
+.refreshButtonClass:hover {
+    cursor: pointer;
+    filter: brightness(120%);
+}
+
+.MuiAutocomplete-popper {
     border: 1px solid gray;
     border-radius: 6px;
-  }
+}
 
-  * {
+* {
     /* disable transitions */
     transition: none !important;
-  }
+}
 
-  #adsettings_dialog {
+#adsettings_dialog {
     outline: none;
     border: none;
-
     outline: 1px solid gray;
     display: flex;
     flex-direction: row;
@@ -412,201 +412,175 @@
     align-items: start;
     width: 100rem;
     height: 50rem;
-
     padding: 2rem;
     border-radius: 6px;
-
     box-sizing: border-box;
-
     gap: 20px;
-  }
+}
 
-  #adsettings_dialog .sidebar {
+#adsettings_dialog .sidebar {
     width: 20rem;
     height: 100%;
-
     border-right: 1px solid gray;
-
     display: flex;
     flex-direction: column;
     align-items: start;
     justify-content: start;
-    
-    box-sizing: border-box;
 
+    box-sizing: border-box;
     padding-right: 20px;
     gap: 20px;
-  }
+}
 
-  #adsettings_dialog .sidebarElementselect {
+#adsettings_dialog .sidebarElementselect {
     outline: 1px solid white;
     border-radius: 4px;
-
     width: 100%;
     padding: 1rem;
-
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: start;
-
     gap: 10px;
     font-size: 1.2rem;
-
     box-sizing: border-box;
-
     transform: scale(1.05);
-  }
+}
 
-  #adsettings_dialog .sidebarElementunselect {
+#adsettings_dialog .sidebarElementunselect {
     outline: 1px dashed gray;
     border-radius: 1px;
-
     width: 100%;
     padding: 1rem;
-
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: start;
-
     gap: 10px;
     font-size: 1.2rem;
-
     box-sizing: border-box;
-  }
+}
 
-  .flex-column {
+.flex-column {
     display: flex;
     flex-direction: column;
-  }
+}
 
-  .flex-row {
+.flex-row {
     display: flex;
     flex-direction: row;
-  }
+}
 
-  .p-scrollpanel-bar {
+.p-scrollpanel-bar {
     background: white !important;
-  }
+}
 
-  .newReadButton-disabled {
+.newReadButton-disabled {
     width: 100%;
-
     background-color: #000;
     color: #768178;
     border: 2px dashed #768178;
     border-radius: 6px;
     font-size: 1.2rem;
     padding: 20px;
-    margin-bottom: 15px; 
+    margin-bottom: 15px;
     cursor: not-allowed;
-  }
+}
 
-  .newReadButton-active {
+.newReadButton-active {
     width: 100%;
-    
+
     background-color: #121b10;
     color: #ecffee;
     border: 2px solid #77da77;
     border-radius: 6px;
     font-size: 1.2rem;
     padding: 20px;
-    margin-bottom: 15px; 
+    margin-bottom: 15px;
     cursor: pointer;
-  }
+}
 
-  .booksStatisticsCont {
+.booksStatisticsCont {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 2px;
-
     padding: 4px;
     margin-left: 6px;
     margin-right: 6px;
-
     border-radius: 4px;
-    outline: 2px solid gray;
-
+    outline: 4px solid gray;
     width: auto;
     padding-left: 12px;
     padding-right: 12px;
-
     color: #000;
-  }
+}
 
-  .booksStatisticsCont * {
+.booksStatisticsCont * {
     color: #000;
-  }
+}
 
-  .filterHide {
+.filterHide {
     filter: brightness(50%);
-  }
+}
 
-  .filterBlur {
+.filterBlur {
     filter: blur(150%);
-  }
+}
 
-  .whatsappstate_new {
-    outline: 2px dashed #ebad28 !important;
+.whatsappstate_new {
+    outline: 4px dashed #d18f00 !important;
     border: none !important;
-  }
+}
 
-  .whatsappstate_accepted {
-    outline: 2px solid #2862dd !important;
+.whatsappstate_accepted {
+    outline: 4px solid #0e3997 !important;
     border: none !important;
-  }
+}
 
-  .whatsappstate_arrived {
-    outline: 2px dashed #d45134 !important;
+.whatsappstate_arrived {
+    outline: 4px dashed #c53110 !important;
     border: none !important;
-  }
+}
 
-  .whatsappstate_started {
-    outline: 2px solid #369950 !important;
+.whatsappstate_started {
+    outline: 4px solid #0ba133 !important;
     border: none !important;
-  }
+}
 
-  .whatsappstate_reached_paid {
-    outline: 2px dashed #2e7742 !important;
+.whatsappstate_reached_paid {
+    outline: 4px dashed #165e29 !important;
     border: none !important;
-  }
+}
 
-
-  .flex.align-items-center.bg-white.p-3.gap-3.border-bottom-1.surface-border.cursor-pointer.mb-1 {
+.flex.align-items-center.bg-white.p-3.gap-3.border-bottom-1.surface-border.cursor-pointer.mb-1 {
     outline: 2px solid gray;
-
     margin-left: 15px;
     margin-right: 15px;
     margin-bottom: 15px !important;
     border-radius: 12px;
-  }
+}
 
-
-  .flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1 {
-    background: #1d1d22 !important;
+.flex.bg-white.align-items-center.justify-content-between.w-full.shadow-2.z-1 {
     border-bottom: 2px solid gray;
     box-shadow: var(--shadow1);
-  }
-  
-  .ns-lookupfield {
+}
+
+.ns-lookupfield {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-
     outline: 2px solid #363535;
     border-radius: 4px;
     gap: 8px;
-
     width: 100%;
     height: auto;
-  }
+}
 
-  .ns-lookupfield input {
+.ns-lookupfield input {
     box-sizing: border-box;
     background-color: var(--lookup-highlight-trip-background-colour);
     border: 1px solid var(--lookup-highlight-tripcolour);
@@ -614,183 +588,171 @@
     width: 100%;
     padding: 10px;
     height: 50px;
-  }
+}
 
-  .newsettings {
+.newsettings {
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
     justify-content: start;
     align-items: start;
-
     background-color: #000;
     outline: 1px solid rgb(126, 115, 115);
     border-radius: 8px;
-
     padding: 12px;
-
     position: fixed;
     z-index: 999;
     inset: auto 180px 90px auto;
     gap: 12px;
     width: auto;
     height: auto;
-  }
+}
 
-  .newsettings span {
-  color: #fff;
-  }
+.newsettings span {
+    color: #fff;
+}
 
-  .ns-wrapcolumn {
+.ns-wrapcolumn {
     display: flex;
     flex-direction: column;
     max-height: 300px;
     width: auto;
     flex-wrap: wrap;
     gap: 10px;
-  }
+}
 
-  .ns-row {
+.ns-wraprow {
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+}
+
+.ns-row {
     box-sizing: border-box;
     display: flex;
     flex-direction: row;
     justify-content: start;
-    align-items: start;
+    align-items: center;
     color: #fff;
     padding: 10px;
     gap: 10px;
     width: 300px;
-
     border: 2px solid green;
     border-radius: 6px;
-
-
     font-size: 14px;
     text-align: center;
     cursor: pointer;
     background-color: #1d1c1c;
-  }
+}
 
-  #OPEN_CONFIG {
+#OPEN_CONFIG {
     border-color: #fff;
     background-color: #373a3b;
-  }
+}
 
-  .ns-row:hover {
-    /*filter: brightness(120%);*/
-  }
 
-  .ns-row:hover * {
+.ns-row:hover * {
     color: rgb(153, 201, 153);
-  }
+}
 
-  .ns-row:active {
-    /*filter: brightness(80%);*/
-  }
+.ns-row:active {
+    filter: brightness(80%);
+}
 
-  img[isbookingicon] {
-    background-color: #000;
-    border-radius: 4px;
-  }
+.ns-row:hover {
+    filter: brightness(120%);
+}
 
+img[isbookingicon] {
+}
 
-  .timeDiffAccepted {
+.timeDiffAccepted {
     background-color: #2c63b6;
     border: 2px solid color-mix(in srgb, #2c63b6, black 70%);
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 8px;
     color: #fff;
-  }
+}
 
-  .timeDiffArrived {
+.timeDiffArrived {
     background-color: #bb5f48;
     border: 2px solid color-mix(in srgb, #bb5f48, black 70%);
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 8px;
     color: #fff;
-  }
+}
 
-  .timeDiffBooked {
+.timeDiffBooked {
     background-color: #405745;
     border: 2px solid color-mix(in srgb, #405745, black 70%);
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 8px;
     color: #fff;
-  }
+}
 
-
-  .selectedDriverTag {
-    background-color: #282c35;
+.selectedDriverTag {
+    background-color: #ebeff7;
     border: 2px solid color-mix(in srgb, #282c35, black 70%);
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 8px;
-    color: #fff;
-  }
+    color: #000;
+}
 
-  .selectedDriverTagDupe {
-    background-color: #996428;
+.selectedDriverTagDupe {
+    background-color: #e0bd90;
     border: 2px solid color-mix(in srgb, #282c35, #570000 70%);
     padding-left: 8px;
     padding-right: 8px;
     border-radius: 8px;
-    color: #fff;
-  }
+    color: #000;
+}
 
-  .acceptedWarn-highlight {
-    outline: 3px solid #4c64a7;
-    filter: brightness(120%);
+.acceptedWarn-highlight {
+    outline: 4px dashed #4c64a7;
     box-shadow: var(--shadow1);
-  }
+}
 
-  .arrivedWarn-highlight {
-    outline: 3px solid #a74f4c;
-    filter: brightness(120%);
+.arrivedWarn-highlight {
+    outline: 4px dashed #a74f4c;
     box-shadow: var(--shadow1);
-  }
+}
 
-  .whatsapp-highlight {
-    outline: 4px solid var(--whatsapp-tripcolour);
-    filter: brightness(130%);
+.whatsapp-highlight {
+    outline: 6px solid var(--whatsapp-tripcolour);
     box-shadow: var(--shadow1);
-  }
+}
 
-  .lookup-highlight {
-    outline: 4px solid var(--lookup-highlight-tripcolour);
-    /*filter: brightness(130%);*/
+.lookup-highlight {
+    outline: 6px solid var(--lookup-highlight-tripcolour);
     box-shadow: var(--shadow1);
-
     background: var(--lookup-highlight-trip-background-colour) !important;
-  }
+}
 
-  .setting-buttonbase {
+.setting-buttonbase {
     box-shadow: var(--shadow1);
     position: fixed;
     z-index: 99;
     inset: auto 180px 30px auto;
     width: 150px;
     height: 45px;
-
     text-align: center;
     font-family: "Segoe UI";
     font-weight: bold;
     justify-content: center;
-
     padding: 6px;
     background: var(--native-dark-bg-color);
     color: white;
-
     border-radius: 6px;
     outline: 2px solid white;
     border: none;
-
     transition: 0.2s all ease-in-out;
-  }
+}
 
-  .container-bookinginfo {
+.container-bookinginfo {
     inset: auto 1000px 30px auto;
     width: 900px !important;
     display: flex;
@@ -798,95 +760,109 @@
     align-items: center;
     justify-content: center;
     outline: 1px solid black !important;
-  }
+}
 
-  .container-bookinginfo span {
+.container-bookinginfo span {
     font-weight: lighter;
-  }
+}
 
-  .container-bookinginfo:hover {
+.container-bookinginfo:hover {
     filter: none !important;
     cursor: default !important;
-  }
+}
 
-  .setting-fetchbookings {
+.setting-fetchbookings {
     inset: auto 580px 30px auto;
-  }
+}
 
-  .setting-checkapptrips {
+.setting-checkapptrips {
     inset: auto 380px 30px auto;
-  }
+}
 
-  .setting-newchecker {
+.setting-newchecker {
     inset: auto 180px 30px auto;
-  }
+}
 
-  .setting-buttonbase {
+.setting-buttonbase {
     position: fixed;
     z-index: 99;
     width: 150px;
     height: 45px;
-
     text-align: center;
     font-family: "Segoe UI";
     font-weight: bold;
     justify-content: center;
-
     padding: 6px;
     background: var(--native-dark-bg-color);
     color: white;
-
     border-radius: 6px;
     outline: 2px solid white;
     border: none;
-
     transition: 0.2s all ease-in-out;
-  }
+}
 
-  .setting-buttonbase:hover {
+.setting-buttonbase:hover {
     filter: brightness(120%);
     cursor: pointer;
-  }
+}
 
-  .owntrip {
+.owntrip {
     background: var(--own-booking-color) !important;
-  }
+}
 
-  .alt-owntrip {
+.alt-owntrip {
     background: var(--app-booking-color) !important;
-  }
+}
 
-  .notif-arrived {
+.notif-arrived {
     outline: 1px solid var(--arrived-orange);
-  }
+}
 
-  .cust_phonecopy,
-  a.cust_phonecopy,
-  a[href^="tel:"].cust_phonecopy {
+.cust_phonecopy,
+a.cust_phonecopy,
+a[href^="tel:"].cust_phonecopy {
     color: var(--phonenumber-click-color) !important;
     background-color: #e6e2f0;
     outline: 2px dashed var(--d-phonecopy) !important;
-  }
+}
 
-  a[href^="tel:"] {
+a[href^="tel:"] {
     color: var(--phonenumber-base-color) !important;
     background-color: #e6e2f0;
     outline: 1px solid var(--darker-phonenums) !important;
-    border-radius: 3px !important;
-  }
-
-
-
-  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
-  /* CUSTOM -- CUSTOM -- CUSTOM -- CUSTOM */
+    padding-left: 4px;
+    padding-right: 4px;
+    width: fit-content;
+}
     `;
     document.getElementsByTagName('head')[0].appendChild(style);
+
+    function restoreMemoryColours() {
+        if (localStorage.getItem("DATA_CSS_EXISTS")) {
+            const root = document.documentElement;
+            root.style.setProperty('--own-booking-color', localStorage.getItem("DATA_CSS_COLOUROWN"));
+            root.style.setProperty('--app-booking-color', localStorage.getItem("DATA_CSS_COLOURAPP"));
+            root.style.setProperty('--phonenumber-base-color', localStorage.getItem("DATA_CSS_COLOURPHONE"));
+            root.style.setProperty('--phonenumber-click-color', localStorage.getItem("DATA_CSS_COLOURPHONECOPY"));
+        }
+    }
+
+
+    /* style variables */
+
+    restoreMemoryColours();
+
+    var global_css_colourOwn = rootStyles.getPropertyValue('--own-booking-color').trim();
+    var global_css_colourApp = rootStyles.getPropertyValue('--app-booking-color').trim();
+    var global_css_colourPhone = rootStyles.getPropertyValue('--phonenumber-base-color').trim();
+    var global_css_colourPhoneCopy = rootStyles.getPropertyValue('--phonenumber-click-color').trim();
 
 
     function hasDuplicates(arr, value) {
         return arr.filter(item => item === value).length > 1;
     }
+
+    const isHexColor = (str) => /^#?([0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(str);
 
     var urldata = window.location.href;
 
@@ -1066,6 +1042,7 @@
     var toPingNewApp = false;
     var toPingLookup = false;
 
+
     /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
     function tickFunction(query) {
         toAlertAccepted = false;
@@ -1111,7 +1088,11 @@
                     document.title = "WhatsApp History"
                     break;
                 case "https://nubeli-cash.firebaseapp.com/chat":
-                    document.title = "Drivers Chat"
+                    if (global_unreadMsgAmount >= 1) {
+                        document.title = `(${global_unreadMsgAmount}) Drivers Chat`
+                    } else {
+                        document.title = `Drivers Chat`
+                    }
                     break;
                 case "https://nubeli-cash.firebaseapp.com/wallethistory":
                     document.title = "Wallet History"
@@ -1125,6 +1106,10 @@
             // NEW READ ALL BUTTON
             if (urldata == DriversChatPageURL) {
                 activeBadges = document.querySelectorAll(driverChatWideBadgeQuery);
+
+                if (activeBadges) {
+                    global_unreadMsgAmount = activeBadges.length;
+                }
 
                 if (activeBadges.length >= 1) {
                     var dataGet = null;
@@ -1480,9 +1465,9 @@
                         if (!(cells[3].querySelector('img[isbookingicon="true"]')) && isBookLater) {
                             const bookIcon = document.createElement('img')
                             bookIcon.setAttribute("isbookingicon", "true")
-                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgdmlld0JveD0iMCAwIDI0IDI0Ij48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNNy4yODggMTMuNzEzUTcgMTMuNDI1IDcgMTN0LjI4OC0uNzEyVDggMTJ0LjcxMy4yODhUOSAxM3QtLjI4OC43MTNUOCAxNHQtLjcxMi0uMjg4bTQgMFExMSAxMy40MjYgMTEgMTN0LjI4OC0uNzEyVDEyIDEydC43MTMuMjg4VDEzIDEzdC0uMjg4LjcxM1QxMiAxNHQtLjcxMi0uMjg4bTQgMFExNSAxMy40MjYgMTUgMTN0LjI4OC0uNzEyVDE2IDEydC43MTMuMjg4VDE3IDEzdC0uMjg4LjcxM1QxNiAxNHQtLjcxMi0uMjg4TTUgMjJxLS44MjUgMC0xLjQxMi0uNTg3VDMgMjBWNnEwLS44MjUuNTg4LTEuNDEyVDUgNGgxVjJoMnYyaDhWMmgydjJoMXEuODI1IDAgMS40MTMuNTg4VDIxIDZ2MTRxMCAuODI1LS41ODcgMS40MTNUMTkgMjJ6bTAtMmgxNFYxMEg1eiIvPjwvc3ZnPg==";
-                            bookIcon.setAttribute("width", "24px")
-                            bookIcon.setAttribute("height", "24px")
+                            bookIcon.src = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNlMTFkNDgiIGQ9Ik0xOSAxOUg1VjhoMTRtLTMtN3YySDhWMUg2djJINWMtMS4xMSAwLTIgLjg5LTIgMnYxNGEyIDIgMCAwIDAgMiAyaDE0YTIgMiAwIDAgMCAyLTJWNWEyIDIgMCAwIDAtMi0yaC0xVjFtLTEgMTFoLTV2NWg1eiIvPjwvc3ZnPg==";
+                            bookIcon.setAttribute("width", "28px")
+                            bookIcon.setAttribute("height", "28px")
 
                             cells[3].prepend(bookIcon)
                         }
@@ -1756,8 +1741,22 @@
                     }
 
                     global_wspTextbox.addEventListener("change", (event) => {
-                        data_Wsp_TextboxContent[wspNumber] = global_wspTextbox.value;
+                        if (global_wspTextbox.disabled) {
+                            data_Wsp_TextboxContent[wspNumber] = "";
+                        } else {
+                            data_Wsp_TextboxContent[wspNumber] = global_wspTextbox.value;
+                        }
                     })
+
+                    document.addEventListener('keydown', function (event) {
+                        if (event.key === 'Enter') {
+                            setTimeout(() => {
+                                if (global_wspTextbox.disabled) {
+                                    data_Wsp_TextboxContent[wspNumber] = "";
+                                }
+                            }, 50);
+                        }
+                    });
                 }
             }
 
@@ -2113,7 +2112,7 @@
         newSettingsCont.id = "settings_CONTAINER";
         newSettingsCont.classList.add("newsettings")
 
-        newSettingsCont.innerHTML = `
+        newSettingsCont.innerHTML = /*html*/`
             <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION} | Profile ${SET_PROFILE}</span>
         <span>Script Settings</span>
         <div class="ns-wrapcolumn">
@@ -2193,7 +2192,57 @@
                 " width="20px" height="20px">
                 Remember WhatsApp Textbox Text
             </span>
+
+            <span class="ns-row" id="settings_OPT12">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Im0xNC43MTIgNy41OTZsLTIuMjg5LTIuMjg4bDIuMjg5LTIuMjg5TDE3IDUuMzA4em01IDNsLTEuMjg5LTEuMjg4bDEuMjg5LTEuMjg5TDIxIDkuMzA4ek0xMi4wNzUgMjFxLTEuODg4IDAtMy41NDMtLjcxM1Q1LjY0IDE4LjMzNnQtMS45NTEtMi44OTN0LS43MTQtMy41NDNxMC0yLjkyIDEuNjgtNS4yNjV0NC40MzYtMy4yN3EtLjEwNCAyLjM0LjcxNyA0LjUwMXEuODIgMi4xNjEgMi40OCAzLjgycTEuNjYgMS42NiAzLjgyIDIuNDgxdDQuNTAyLjcxN3EtLjkyIDIuNzU0LTMuMjY4IDQuNDM1VDEyLjA3NSAyMSIvPjwvc3ZnPg==
+                " width="20px" height="20px">
+                Enable Dark Filter
+            </span>
         </div>
+        <div class="ns-wrapcolumn" style="width: fit-content; max-height: none;">
+            <span>Style Settings</span>
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
+                <span>Own Trips Colour: </span>
+                <input type="color" id="css_colourOwn" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourOwn}">
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
+                <span>App Trips Colour: </span>
+                <input type="color" id="css_colourApp" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourApp}">
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
+                <span>Phone Numbers Colour: </span>
+                <input type="color" id="css_colourPhone" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourPhone}">
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
+                <span>Phone Number Colour when Copying: </span>
+                <input type="color" id="css_colourPhoneCopy" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourPhoneCopy}">
+            </div>
+
+            <div class="ns-wraprow" style="gap: 10px;">
+                <button id="css_eventUpdate" class="ns-row" style="width: fit-content; border-color: white;">
+                    <img src="
+                    data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxkZWZzPjxtYXNrIGlkPSJ5ZXNpY29uLWljb24tcGFyay1zb2xpZC11cGRhdGUtcm90YXRpb24tU1ZHVkdUZnBiekgiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI0Ij48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2U9IiNmZmYiIGQ9Ik0yNCA0NGMxMS4wNDYgMCAyMC04Ljk1NCAyMC0yMFMzNS4wNDYgNCAyNCA0UzQgMTIuOTU0IDQgMjRzOC45NTQgMjAgMjAgMjAiLz48cGF0aCBzdHJva2U9IiMwMDAiIGQ9Ik0zMy41NDIgMjdjLTEuMjc0IDQuMDU3LTUuMDY0IDctOS41NDIgN3MtOC4yNjgtMi45NDMtOS41NDItN3Y2bTE5LjA4NC0xOHY2Yy0xLjI3NC00LjA1Ny01LjA2NC03LTkuNTQyLTdzLTguMjY4IDIuOTQzLTkuNTQyIDciLz48L2c+PC9tYXNrPjwvZGVmcz48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMCAwaDQ4djQ4SDB6IiBtYXNrPSJ1cmwoI3llc2ljb24taWNvbi1wYXJrLXNvbGlkLXVwZGF0ZS1yb3RhdGlvbi1TVkdWR1RmcGJ6SCkiLz48L3N2Zz4=
+                    " width="20px" height="20px">
+                    Update Styles
+                </button>
+                
+                <button id="css_eventSave" class="ns-row" style="width: fit-content; border-color: white;">
+                    <img src="
+                    data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik02IDEwaDlWNkg2ek01IDIxcS0uODI1IDAtMS40MTItLjU4N1QzIDE5VjVxMC0uODI1LjU4OC0xLjQxMlQ1IDNoMTEuMTc1cS40IDAgLjc2My4xNXQuNjM3LjQyNWwyLjg1IDIuODVxLjI3NS4yNzUuNDI1LjYzOHQuMTUuNzYydjMuMzVxMCAuNDI1LS4zMzcuNjc1dC0uNzYzLjE3NVExOS42NzUgMTIgMTkuNDUgMTJ0LS40NS4wNXEtLjUuMDc1LS45NzUuMzEzdC0uODc1LjYxMkwxNSAxNS4xMjVWMTVxMC0xLjI1LS44NzUtMi4xMjVUMTIgMTJ0LTIuMTI1Ljg3NVQ5IDE1dC44NzUgMi4xMjVUMTIgMThoLjFsLS41LjVxLS4yNzUuMjc1LS40MzcuNjV0LS4xNjMuNzc1VjIwcTAgLjQyNS0uMjg3LjcxMlQxMCAyMXptOCAxdi0xLjY1cTAtLjIuMDc1LS4zODd0LjIyNS0uMzM4bDUuMjI1LTUuMnEuMjI1LS4yMjUuNS0uMzI1dC41NS0uMXEuMyAwIC41NzUuMTEzdC41LjMzN2wuOTI1LjkyNXEuMi4yMjUuMzEzLjV0LjExMi41NXQtLjEuNTYzdC0uMzI1LjUxMmwtNS4yIDUuMnEtLjE1LjE1LS4zMzcuMjI1VDE1LjY1IDIzSDE0cS0uNDI1IDAtLjcxMi0uMjg3VDEzIDIybTYuNTc1LTQuNmwuOTI1LS45NzVsLS45MjUtLjkyNWwtLjk1Ljk1eiIvPjwvc3ZnPg==
+                    " width="20px" height="20px">
+                    Save Styles to Memory
+                </button>
+                
+                <button id="css_eventReset" class="ns-row" style="width: fit-content; border-color: white;">
+                    <img src="
+                    data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xOS4yNSAxNi40TDguNCA1LjU1TDEyIDJsNS42NSA1LjU1cTEuMSAxLjA1IDEuNzI1IDIuNDg4VDIwIDEzLjFxMCAuOS0uMiAxLjcyNXQtLjU1IDEuNTc1bS41NSA2LjJsLTMuMS0zLjFxLTEuMDI1LjcyNS0yLjIgMS4xMTNUMTIgMjFxLTMuMzI1IDAtNS42NjMtMi4zMTJUNCAxMy4xcTAtMS4yNzUuNC0yLjQ1VDUuNiA4LjRMMS40IDQuMmwxLjQtMS40bDE4LjQgMTguNHoiLz48L3N2Zz4=
+                    " width="20px" height="20px">
+                    Restore Saved Styles from Memory
+                </button>
+            </div>
+        </div>
+
         <div class="ns-wrapcolumn" style="width: 100%">
             <span>Lookup Info</span>
             <div class="ns-lookupfield">
@@ -2217,9 +2266,104 @@
             }
         })
 
+        const eventUpdateButton = document.getElementById("css_eventUpdate");
+        const eventSaveButton = document.getElementById("css_eventSave");
+        const eventResetButton = document.getElementById("css_eventReset");
+        const input_css_colourOwn = document.getElementById("css_colourOwn");
+        const input_css_colourApp = document.getElementById("css_colourApp");
+        const input_css_colourPhone = document.getElementById("css_colourPhone");
+        const input_css_colourPhoneCopy = document.getElementById("css_colourPhoneCopy");
+
+        eventUpdateButton.addEventListener("click", () => {
+            var isEverythingTrue = false;
+
+            isEverythingTrue = isHexColor(input_css_colourOwn.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourApp.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourPhone.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourPhoneCopy.value) ? true : false;
+
+            if (!isEverythingTrue) {
+                window.alert("Error: Values are not HEX Colours (e.g = #FFF000)")
+
+                eventUpdateButton.style.borderColor = "red";
+                setTimeout(() => {
+                    eventUpdateButton.style.borderColor = "white";
+                }, 500);
+            } else if (isEverythingTrue) {
+
+                const root = document.documentElement;
+                root.style.setProperty('--own-booking-color', input_css_colourOwn.value);
+                root.style.setProperty('--app-booking-color', input_css_colourApp.value);
+                root.style.setProperty('--phonenumber-base-color', input_css_colourPhone.value);
+                root.style.setProperty('--phonenumber-click-color', input_css_colourPhoneCopy.value);
+
+                eventUpdateButton.style.borderColor = "green";
+                setTimeout(() => {
+                    eventUpdateButton.style.borderColor = "white";
+                }, 500);
+            }
+        })
+
+        eventSaveButton.addEventListener("click", () => {
+            var isEverythingTrue = false;
+
+            isEverythingTrue = isHexColor(input_css_colourOwn.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourApp.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourPhone.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourPhoneCopy.value) ? true : false;
+
+            if (!isEverythingTrue) {
+                window.alert("Error: Values are not HEX Colours (e.g = #FFF000)")
+
+                eventSaveButton.style.borderColor = "red";
+                setTimeout(() => {
+                    eventSaveButton.style.borderColor = "white";
+                }, 500);
+            } else if (isEverythingTrue) {
+                if (!localStorage.getItem("DATA_CSS_EXISTS")) {
+                    localStorage.setItem("DATA_CSS_EXISTS", true);
+                }
+
+                localStorage.setItem("DATA_CSS_COLOUROWN", input_css_colourOwn.value);
+                localStorage.setItem("DATA_CSS_COLOURAPP", input_css_colourApp.value);
+                localStorage.setItem("DATA_CSS_COLOURPHONE", input_css_colourPhone.value);
+                localStorage.setItem("DATA_CSS_COLOURPHONECOPY", input_css_colourPhoneCopy.value);
+
+                eventSaveButton.style.borderColor = "green";
+                setTimeout(() => {
+                    eventSaveButton.style.borderColor = "white";
+                }, 500);
+            }
+        })
+
+        eventResetButton.addEventListener("click", () => {
+            restoreMemoryColours();
+
+            eventResetButton.style.borderColor = "green";
+            setTimeout(() => {
+                eventResetButton.style.borderColor = "white";
+            }, 500);
+        })
+
         document.getElementById("settings_LOOKUP1").addEventListener("change", () => {
             lookupCooldown = true;
         });
+
+        var setting_OPT12 = document.getElementById("settings_OPT12");
+        setting_OPT12.style.borderColor = Settings.EnableDarkFilter == true ? "green" : "red";
+
+        setting_OPT12.addEventListener("click", () => {
+            if (Settings.EnableDarkFilter) {
+                Settings.EnableDarkFilter = false;
+                setting_OPT12.style.borderColor = "red";
+
+                document.documentElement.classList.remove("filterDark")
+            } else {
+                Settings.EnableDarkFilter = true;
+                setting_OPT12.style.borderColor = "green";
+                document.documentElement.classList.add("filterDark")
+            }
+        })
 
         var setting_OPT11 = document.getElementById("settings_OPT11");
         setting_OPT11.style.borderColor = Settings.KeepWspChatboxContent == true ? "green" : "red";
@@ -2696,6 +2840,17 @@
 })();
 
 /*
+4.5
+[features]
+- adapted everything to light mode
+- you can now customize your style colours on the new settings menu
+- settings button to toggle custom dark mode filter on/off
+- when having the drivers chat tab open, it will display a number on the tab to indicate unread chats
+
+[fixes]
+- textbox memory now doesnt recover text that has already been sent, now it fully works
+
+
 4.45b
 [features]
 - textbox memory: whenever you write text on a whatsapp chat if it gets closed the textbox will recover its previous text
