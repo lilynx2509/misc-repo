@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.5"
+    const SCRIPT_VERSION = "v4.51"
 
     var SET_PROFILE = 1
 
@@ -320,6 +320,10 @@
     --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
+
+  td.bg-yellow-100 {
+    background-color: var(--duplicate-booking-color) !important;
+  }
 
 .cssSettingsInput {
     padding: 8px;
@@ -844,6 +848,10 @@ a[href^="tel:"] {
             root.style.setProperty('--app-booking-color', localStorage.getItem("DATA_CSS_COLOURAPP"));
             root.style.setProperty('--phonenumber-base-color', localStorage.getItem("DATA_CSS_COLOURPHONE"));
             root.style.setProperty('--phonenumber-click-color', localStorage.getItem("DATA_CSS_COLOURPHONECOPY"));
+
+            if (localStorage.getItem("DATA_CSS_COLOURDUPLICATES")) {
+                root.style.setProperty('--duplicate-booking-color', localStorage.getItem("DATA_CSS_COLOURDUPLICATES"));
+            }
         }
     }
 
@@ -856,6 +864,7 @@ a[href^="tel:"] {
     var global_css_colourApp = rootStyles.getPropertyValue('--app-booking-color').trim();
     var global_css_colourPhone = rootStyles.getPropertyValue('--phonenumber-base-color').trim();
     var global_css_colourPhoneCopy = rootStyles.getPropertyValue('--phonenumber-click-color').trim();
+    var global_css_colourDuplicate = rootStyles.getPropertyValue('--duplicate-booking-color').trim();
 
 
     function hasDuplicates(arr, value) {
@@ -2211,6 +2220,10 @@ a[href^="tel:"] {
                 <input type="color" id="css_colourApp" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourApp}">
             </div>
             <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
+                <span>Duplicate Trips Colour: </span>
+                <input type="color" id="css_colourDuplicate" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourDuplicate}">
+            </div>
+            <div style="display: flex; flex-direction: row; align-items: center; gap: 15px; justify-content: space-between;">
                 <span>Phone Numbers Colour: </span>
                 <input type="color" id="css_colourPhone" placeholder="#000000" autocomplete="off" class="cssSettingsInput" value="${global_css_colourPhone}">
             </div>
@@ -2271,6 +2284,7 @@ a[href^="tel:"] {
         const eventResetButton = document.getElementById("css_eventReset");
         const input_css_colourOwn = document.getElementById("css_colourOwn");
         const input_css_colourApp = document.getElementById("css_colourApp");
+        const input_css_colourDuplicate = document.getElementById("css_colourDuplicate");
         const input_css_colourPhone = document.getElementById("css_colourPhone");
         const input_css_colourPhoneCopy = document.getElementById("css_colourPhoneCopy");
 
@@ -2281,6 +2295,7 @@ a[href^="tel:"] {
             isEverythingTrue = isHexColor(input_css_colourApp.value) ? true : false;
             isEverythingTrue = isHexColor(input_css_colourPhone.value) ? true : false;
             isEverythingTrue = isHexColor(input_css_colourPhoneCopy.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourDuplicate.value) ? true : false;
 
             if (!isEverythingTrue) {
                 window.alert("Error: Values are not HEX Colours (e.g = #FFF000)")
@@ -2296,6 +2311,7 @@ a[href^="tel:"] {
                 root.style.setProperty('--app-booking-color', input_css_colourApp.value);
                 root.style.setProperty('--phonenumber-base-color', input_css_colourPhone.value);
                 root.style.setProperty('--phonenumber-click-color', input_css_colourPhoneCopy.value);
+                root.style.setProperty('--duplicate-booking-color', input_css_colourDuplicate.value);
 
                 eventUpdateButton.style.borderColor = "green";
                 setTimeout(() => {
@@ -2311,6 +2327,7 @@ a[href^="tel:"] {
             isEverythingTrue = isHexColor(input_css_colourApp.value) ? true : false;
             isEverythingTrue = isHexColor(input_css_colourPhone.value) ? true : false;
             isEverythingTrue = isHexColor(input_css_colourPhoneCopy.value) ? true : false;
+            isEverythingTrue = isHexColor(input_css_colourDuplicate.value) ? true : false;
 
             if (!isEverythingTrue) {
                 window.alert("Error: Values are not HEX Colours (e.g = #FFF000)")
@@ -2328,6 +2345,7 @@ a[href^="tel:"] {
                 localStorage.setItem("DATA_CSS_COLOURAPP", input_css_colourApp.value);
                 localStorage.setItem("DATA_CSS_COLOURPHONE", input_css_colourPhone.value);
                 localStorage.setItem("DATA_CSS_COLOURPHONECOPY", input_css_colourPhoneCopy.value);
+                localStorage.setItem("DATA_CSS_COLOURDUPLICATES", input_css_colourDuplicate.value);
 
                 eventSaveButton.style.borderColor = "green";
                 setTimeout(() => {
