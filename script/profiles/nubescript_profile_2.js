@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.51"
+    const SCRIPT_VERSION = "v4.52"
 
     var SET_PROFILE = 1
 
@@ -321,6 +321,11 @@
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
+#map {
+    color-scheme: only light !important;
+}
+
+
   td.bg-yellow-100 {
     background-color: var(--duplicate-booking-color) !important;
   }
@@ -364,14 +369,16 @@ html.filterDark #map {
 }
 
 .selectedDriverTagBadOutline {
-    border: 2px solid #da0000 !important;
+    border: 4px solid #f30c0c !important;
 }
 
 .selectedDriverTagGoodOutline {
-    border: 2px solid #117907 !important;
+    border: 4px solid #21d111 !important;
 }
 
 .refreshButtonClass {
+    color-scheme: only light !important;
+
     box-shadow: var(--shadow1);
     position: fixed;
     z-index: 99;
@@ -538,6 +545,12 @@ html.filterDark #map {
     border: none !important;
 }
 
+.whatsappstate_reserved {
+    outline: 4px dotted #d18f00 !important;
+    border: 2px solid #d18f00 !important;
+    border: none !important;
+}
+
 .whatsappstate_accepted {
     outline: 4px solid #0e3997 !important;
     border: none !important;
@@ -595,6 +608,9 @@ html.filterDark #map {
 }
 
 .newsettings {
+
+    color-scheme: only light !important;
+
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
@@ -698,12 +714,15 @@ img[isbookingicon] {
 }
 
 .selectedDriverTag {
-    background-color: #ebeff7;
-    border: 2px solid color-mix(in srgb, #282c35, black 70%);
+    background-color: #323438;
+    border: 2px solid color-mix(in srgb, #323438, black 70%);
     padding-left: 8px;
     padding-right: 8px;
-    border-radius: 8px;
-    color: #000;
+    border-radius: 4px;
+    color: #ebebeb;
+    margin-left: 2px;
+
+    color-scheme: only light !important;
 }
 
 .selectedDriverTagDupe {
@@ -711,8 +730,10 @@ img[isbookingicon] {
     border: 2px solid color-mix(in srgb, #282c35, #570000 70%);
     padding-left: 8px;
     padding-right: 8px;
-    border-radius: 8px;
+    border-radius: 4px;
     color: #000;
+
+    color-scheme: only light !important;
 }
 
 .acceptedWarn-highlight {
@@ -737,6 +758,8 @@ img[isbookingicon] {
 }
 
 .setting-buttonbase {
+    color-scheme: only light !important;
+
     box-shadow: var(--shadow1);
     position: fixed;
     z-index: 99;
@@ -838,6 +861,13 @@ a[href^="tel:"] {
     padding-right: 4px;
     width: fit-content;
 }
+
+@media (prefers-color-scheme: dark) {
+    a[href^="tel:"] {
+        outline: 1px solid var(--phonenumber-base-color) !important;
+    }
+}
+
     `;
     document.getElementsByTagName('head')[0].appendChild(style);
 
@@ -867,6 +897,9 @@ a[href^="tel:"] {
     var global_css_colourDuplicate = rootStyles.getPropertyValue('--duplicate-booking-color').trim();
 
 
+    var global_mapElement = document.getElementById("map");
+
+
     function hasDuplicates(arr, value) {
         return arr.filter(item => item === value).length > 1;
     }
@@ -881,6 +914,7 @@ a[href^="tel:"] {
         "ARRIVED": "whatsappstate_arrived",
         "STARTED": "whatsappstate_started",
         "NEW": "whatsappstate_new",
+        "RESERVED": "whatsappstate_reserved",
         "FINISHING": "whatsappstate_reached_paid",
         "REACHED": "whatsappstate_reached_paid",
         "REACHEDEXTRA": "whatsappstate_reached_paid",
@@ -1054,6 +1088,7 @@ a[href^="tel:"] {
 
     /* TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION - TICK FUNCTION */
     function tickFunction(query) {
+
         toAlertAccepted = false;
         toAlertArrived = false;
 
@@ -2858,6 +2893,15 @@ a[href^="tel:"] {
 })();
 
 /*
+
+4.51 - 4.52
+[features]
+- can now change duplicate booking colour again
+- outline for whatsapp window/chat for reserved double trips
+
+[tweaks]
+- tweaked some styles to work with auto-dark-mode from chrome
+
 4.5
 [features]
 - adapted everything to light mode
