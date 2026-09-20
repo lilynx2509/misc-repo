@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.52"
+    const SCRIPT_VERSION = "v4.6"
 
     var SET_PROFILE = 1
 
@@ -94,6 +94,7 @@
             WhatsappTagList: [                  // tags for the whatsapp chats
                 "COTIZANDO VIAJE",
                 "TAXI EN CAMINO",
+                "ARRIVED AVISADO",
                 "DOUBLE TRIP",
                 "VIAJE RESERVADO",
                 "VIAJE COMENZADO",
@@ -1461,9 +1462,48 @@ a[href^="tel:"] {
                         const wspCont = document.querySelector(masterWspContQuery)
 
                         if (wspCont) {
+                            var wspHeader = document.querySelector(wspChatHeaderQuery);
                             const chatGroups = wspCont.querySelectorAll(wspChatgroupsQuery);
-                            if (chatGroups) {
 
+                            if (wspHeader) {
+                                var chatNumber = wspHeader.querySelector("a")
+                                chatNumber = formatPhoneNum(chatNumber.getAttribute("href"), true);
+
+                                if (!(wspHeader.getAttribute("alreadyHasTags") == "true")) {
+                                    console.log(whatsappSelectList)
+                                    wspHeader.insertAdjacentHTML("beforeend", whatsappSelectList);
+                                    var selectElement = wspHeader.querySelector("select");
+
+                                    if (chatNumber in whatsappTagsNumbers) {
+                                        selectElement.value = whatsappTagsNumbers[chatNumber];
+                                    }
+
+                                    selectElement.addEventListener("change", function () {
+                                        whatsappTagsNumbers[chatNumber] = this.value;
+                                    })
+
+                                    selectElement.addEventListener("click", function (e) {
+                                        e.stopPropagation();
+                                    });
+                                    
+                                    wspHeader.style.flexWrap = "wrap";
+                                    selectElement.style.padding = "5px";
+                                    selectElement.style.margin = "15px";
+                                    selectElement.style.marginTop = "0";
+                                    selectElement.style.borderRadius = "6px";
+                                    selectElement.style.width = "100%";
+                                    wspHeader.setAttribute("alreadyHasTags", "true");
+                                } else {
+                                    var selectElement = wspHeader.querySelector("select");
+
+                                    if (!selectElement.value) return;
+
+                                    if (selectElement.value !== whatsappTagsNumbers[chatNumber]) {
+                                        console.log("Select does not correspond! " + selectElement.value + " ==NOT== " + whatsappTagsNumbers[chatNumber])
+                                        selectElement.value = whatsappTagsNumbers[chatNumber];
+                                    }
+                                }
+                            } else if (chatGroups) {
                                 chatGroups.forEach(element => {
                                     var chatNumber = element.querySelector(`a[href^="tel:"]`);
                                     chatNumber = formatPhoneNum(chatNumber.getAttribute('href'), true);
@@ -1501,7 +1541,6 @@ a[href^="tel:"] {
                                     }
                                 })
                             }
-
                         }
                     }
 
@@ -2893,6 +2932,10 @@ a[href^="tel:"] {
 })();
 
 /*
+
+4.6
+[features]
+- whatsapp chat tag list now appears inside the chat
 
 4.51 - 4.52
 [features]
