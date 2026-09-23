@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const SCRIPT_VERSION = "v4.6"
+    const SCRIPT_VERSION = "4.63"
 
     var SET_PROFILE = 2
 
@@ -907,6 +907,31 @@ a[href^="tel:"] {
 
     const isHexColor = (str) => /^#?([0-9A-F]{3,4}|[0-9A-F]{6}|[0-9A-F]{8})$/i.test(str);
 
+
+    // GET UPDATE
+    const fileUrl = 'https://raw.githubusercontent.com/lilynx2509/misc-repo/refs/heads/main/script/profiles/version.txt';
+    var global_data_asyncversion = "";
+
+    async function fetchGitHubFile() {
+        try {
+            const response = await fetch(fileUrl);
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            const textData = await response.text();
+            global_data_asyncversion = textData;
+            global_data_asyncversion = global_data_asyncversion.replace("\n", "");
+
+            //window.alert(textData);
+        } catch (error) {
+            //window.alert('Failed to fetch the file:', error);
+        }
+    }
+
+    fetchGitHubFile();
+
     var urldata = window.location.href;
 
 
@@ -1099,6 +1124,9 @@ a[href^="tel:"] {
         toPingNew = false;
         toPingNewApp = false;
         toPingLookup = false;
+
+        var scriptHeader = document.getElementById("nubescript_versionHeader");
+        scriptHeader.innerHTML = `NubeScript v${SCRIPT_VERSION} | Profile ${SET_PROFILE} | Latest: v${global_data_asyncversion}`;
 
         if (query == "new") {
             firstChecker = 0;
@@ -1485,7 +1513,7 @@ a[href^="tel:"] {
                                     selectElement.addEventListener("click", function (e) {
                                         e.stopPropagation();
                                     });
-                                    
+
                                     wspHeader.style.flexWrap = "wrap";
                                     selectElement.style.padding = "5px";
                                     selectElement.style.margin = "15px";
@@ -2196,7 +2224,7 @@ a[href^="tel:"] {
         newSettingsCont.classList.add("newsettings")
 
         newSettingsCont.innerHTML = /*html*/`
-            <span style="width: 100%; text-align: center;">NubeScript ${SCRIPT_VERSION} | Profile ${SET_PROFILE}</span>
+            <span id="nubescript_versionHeader" style="width: 100%; text-align: center;">NubeScript v${SCRIPT_VERSION} | Profile ${SET_PROFILE} | (ERROR: Cant get latest)</span>
         <span>Script Settings</span>
         <div class="ns-wrapcolumn">
             <span class="ns-row" id="settings_OPT1">
@@ -2337,6 +2365,13 @@ a[href^="tel:"] {
                 <input id="settings_LOOKUP2" placeholder="Term 2..." autocomplete="off">
             </div>
         </div>
+                
+        <button id="script_eventUpdate" class="ns-row" style="width: fit-content; border-color: gold;">
+            <img src="
+            data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0OCA0OCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxkZWZzPjxtYXNrIGlkPSJ5ZXNpY29uLWljb24tcGFyay1zb2xpZC11cGRhdGUtcm90YXRpb24tU1ZHVkdUZnBiekgiPjxnIGZpbGw9Im5vbmUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIgc3Ryb2tlLXdpZHRoPSI0Ij48cGF0aCBmaWxsPSIjZmZmIiBzdHJva2U9IiNmZmYiIGQ9Ik0yNCA0NGMxMS4wNDYgMCAyMC04Ljk1NCAyMC0yMFMzNS4wNDYgNCAyNCA0UzQgMTIuOTU0IDQgMjRzOC45NTQgMjAgMjAgMjAiLz48cGF0aCBzdHJva2U9IiMwMDAiIGQ9Ik0zMy41NDIgMjdjLTEuMjc0IDQuMDU3LTUuMDY0IDctOS41NDIgN3MtOC4yNjgtMi45NDMtOS41NDItN3Y2bTE5LjA4NC0xOHY2Yy0xLjI3NC00LjA1Ny01LjA2NC03LTkuNTQyLTdzLTguMjY4IDIuOTQzLTkuNTQyIDciLz48L2c+PC9tYXNrPjwvZGVmcz48cGF0aCBmaWxsPSIjZmZmZmZmIiBkPSJNMCAwaDQ4djQ4SDB6IiBtYXNrPSJ1cmwoI3llc2ljb24taWNvbi1wYXJrLXNvbGlkLXVwZGF0ZS1yb3RhdGlvbi1TVkdWR1RmcGJ6SCkiLz48L3N2Zz4=
+            " width="20px" height="20px">
+            <span>Update Script</span>
+        </button>
             `;
 
         document.body.append(newSettingsCont)
@@ -2351,6 +2386,29 @@ a[href^="tel:"] {
                 newSettingsCont.style.display = "flex"
                 isSettingsVisible = true;
             }
+        });
+
+        const scriptUpdateButton = document.getElementById("script_eventUpdate");
+        const scriptUpdateButton_text = scriptUpdateButton.querySelector("span");
+
+        scriptUpdateButton.addEventListener("click", () => {
+            fetchGitHubFile();
+            scriptUpdateButton_text.textContent = "Checking for Updates...";
+
+            setTimeout(() => {
+                //window.alert(`${SCRIPT_VERSION} <-> ${global_data_asyncversion}`)
+                if (SCRIPT_VERSION == global_data_asyncversion) {
+                    scriptUpdateButton_text.textContent = "Already Up to Date: v" + SCRIPT_VERSION;
+                    setTimeout(() => {
+                        scriptUpdateButton_text.textContent = "Update Script"
+                    }, 2000);
+                } else {
+                    scriptUpdateButton_text.textContent = "Updating to v" + global_data_asyncversion + " . . .";
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 2000);
+                }
+            }, 2000);
         })
 
         const eventUpdateButton = document.getElementById("css_eventUpdate");
@@ -2932,6 +2990,10 @@ a[href^="tel:"] {
 })();
 
 /*
+4.63
+[features]
+- added button to check for updates and auto-refresh in case of new available version
+
 4.61
 [fixes]
 - fixed syntax error that stopped the dashboard loop from continuing if u were inside a chat present with tag without a value
