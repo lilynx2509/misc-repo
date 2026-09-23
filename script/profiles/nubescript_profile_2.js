@@ -14,7 +14,7 @@
 
     const SCRIPT_VERSION = "v4.6"
 
-    var SET_PROFILE = 1
+    var SET_PROFILE = 2
 
     if (!localStorage.getItem("DEBUG_PROFILE")) {
         localStorage.setItem("DEBUG_PROFILE", SET_PROFILE);
@@ -1496,7 +1496,7 @@ a[href^="tel:"] {
                                 } else {
                                     var selectElement = wspHeader.querySelector("select");
 
-                                    if (!selectElement.value) return;
+                                    //if (!selectElement.value) return;
 
                                     if (selectElement.value !== whatsappTagsNumbers[chatNumber]) {
                                         console.log("Select does not correspond! " + selectElement.value + " ==NOT== " + whatsappTagsNumbers[chatNumber])
@@ -1532,7 +1532,7 @@ a[href^="tel:"] {
                                     } else {
                                         var selectElement = element.querySelector("select");
 
-                                        if (!selectElement.value) return;
+                                        //if (!selectElement.value) return;
 
                                         if (selectElement.value !== whatsappTagsNumbers[chatNumber]) {
                                             console.log("Select does not correspond! " + selectElement.value + " ==NOT== " + whatsappTagsNumbers[chatNumber])
@@ -2932,6 +2932,9 @@ a[href^="tel:"] {
 })();
 
 /*
+4.61
+[fixes]
+- fixed syntax error that stopped the dashboard loop from continuing if u were inside a chat present with tag without a value
 
 4.6
 [features]
