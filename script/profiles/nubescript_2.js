@@ -1065,6 +1065,26 @@
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
 }
 
+.MuiSwitch-root, .MuiSwitch-root *{
+    color-scheme: only light;
+}
+
+.MuiSwitch-colorPrimary {
+    color: #703232 !important;
+}
+
+.MuiSwitch-colorPrimary.Mui-checked {
+    color: #4f8f43 !important;
+}
+
+.MuiSwitch-colorPrimary + .MuiSwitch-track {
+    background-color: #ff0000 !important;
+}
+
+.MuiSwitch-colorPrimary.Mui-checked + .MuiSwitch-track {
+    background-color: #04ff16 !important;
+}
+
 .st_buttonenabler {
     color-scheme: only light !important;
 
@@ -2887,6 +2907,9 @@ a[href^="tel:"] {
 })();
 
 /*
+>> v1.11
+[tweaks]
+- changed css of Mui switches so theyre visible on dark mode
 
 >> v1.1
 [bugfixes]
