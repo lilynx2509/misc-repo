@@ -12,8 +12,9 @@
 (function () {
     'use strict';
 
-    const global_SCRIPT_VERSION = 1.0
+    const global_SCRIPT_VERSION = 1.1
     var global_USER_PROFILE = 1
+    var global_SETTINGS_SOURCE = "Settings: Script"
 
     /* SAVE DATA */
     if (!localStorage.getItem("DEBUG_PROFILE")) {
@@ -145,10 +146,19 @@
     }
 
     if (localStorage.getItem("SAVED_SETTINGS")) {
-        if (localStorage.getItem("SAVED_SETTINGS_VERSION") == global_SCRIPT_VERSION) {
-            var retrieveSave = localStorage.getItem("SAVED_SETTINGS")
+        var saveVer = localStorage.getItem("SAVED_SETTINGS_VERSION");
+        var savedSettings = JSON.parse(localStorage.getItem("SAVED_SETTINGS"));
+
+        Settings = { ...Settings, ...savedSettings }
+        global_SETTINGS_SOURCE = `Settings: Saved Data (v${saveVer})`
+
+
+        /*
+        if (saveVer == global_SCRIPT_VERSION || saveVer > global_SCRIPT_VERSION) {
             Settings = JSON.parse(retrieveSave);
+            global_SETTINGS_SOURCE = `Settings: Saved Data (v${saveVer})`
         }
+        */
     }
 
     var audio_Arrived = new Audio(Settings.SoundPingArrived[global_USER_PROFILE])
@@ -220,7 +230,7 @@
         "STARTED": "whatsappstate_started",
         "NEW": "whatsappstate_new",
         "RESERVED": "whatsappstate_reserved",
-        "FINISHING": "whatsappstate_reached_paid",
+        "Finishing": "whatsappstate_reached_paid",
         "REACHED": "whatsappstate_reached_paid",
         "REACHEDEXTRA": "whatsappstate_reached_paid",
         "PAID": "whatsappstate_reached_paid"
@@ -281,7 +291,7 @@
         ACCEPTED: 2,
         ARRIVED: 3,
         STARTED: 4,
-        FINISHING: 5,
+        Finishing: 5,
         REACHED: 5,
         REACHEDEXTRA: 5,
         PAID: 5,
@@ -423,7 +433,7 @@
     settings_cont.style.display = "none"
 
     settings_cont.innerHTML = /*html*/`
-        <span class="st_header">NubeScript 2 -- v${global_SCRIPT_VERSION}</span>
+        <span class="st_header">NubeScript 2 // v${global_SCRIPT_VERSION} // ${global_SETTINGS_SOURCE}</span>
 
 
         <div class="st_body" id="st_tab1" style="display: flex;">
@@ -1014,6 +1024,7 @@
             const stringSettings = JSON.stringify(Settings);
             localStorage.setItem("SAVED_SETTINGS", stringSettings)
             localStorage.setItem("SAVED_SETTINGS_VERSION", global_SCRIPT_VERSION)
+            global_SETTINGS_SOURCE = global_SCRIPT_VERSION;
 
 
             btSaveText.textContent = "Saved Succesfully"
@@ -1307,7 +1318,7 @@
     box-shadow: var(--shadow1);
     position: fixed;
     z-index: 99;
-    inset: auto 150px 30px auto; /* 2nd var: lower RIGHT - higher LEFT */
+    inset: auto 200px 30px auto; /* 2nd var: lower RIGHT - higher LEFT */
     width: 50px;
     height: 45px;
     text-align: center;
@@ -2049,10 +2060,10 @@ a[href^="tel:"] {
                                 global_playNewAppPing = true;
                             }
 
-                        } else if (reviewingOwn) {
+                        } else {
                             global_statistics[0]++
 
-                            if (loop_tabActive && Settings.PingNewTrips[global_USER_PROFILE]) {
+                            if (loop_tabActive && reviewingOwn && Settings.PingNewTrips[global_USER_PROFILE]) {
                                 global_playNewPing = true;
                             }
                         }
@@ -2365,49 +2376,6 @@ a[href^="tel:"] {
             }
 
 
-            // function: alert accepted/arriveds styles
-
-            if (Settings.AlertAcceptedTime[global_USER_PROFILE]) {
-                var processedRows = []
-                const cur_alertAcceptTrips = global_activeTripsTable.filter(trip => trip.lateAccepted)
-
-                if (cur_alertAcceptTrips.length > 0) {
-                    cur_alertAcceptTrips.forEach(element => {
-                        var row = document.getElementById(element.tempId);
-                        row.classList.add("acceptedWarn-highlight")
-                        row.setAttribute("warn_Processed", "true")
-
-                        processedRows.push(row)
-                    });
-                }
-
-                clearClasses("acceptedWarn-highlight", `[warn_Processed="true"]`)
-                processedRows.forEach(element => {
-                    element.removeAttribute("warn_Processed");
-                });
-            }
-
-            if (Settings.AlertArrivedTime[global_USER_PROFILE]) {
-                var processedRows = []
-                const cur_alertArrivedTrips = global_activeTripsTable.filter(trip => trip.lateArrived)
-
-                if (cur_alertArrivedTrips.length > 0) {
-                    cur_alertArrivedTrips.forEach(element => {
-                        var row = document.getElementById(element.tempId);
-                        row.classList.add("arrivedWarn-highlight")
-                        row.setAttribute("warn_Processed", "true")
-
-                        processedRows.push(row)
-                    });
-                }
-
-                clearClasses("arrivedWarn-highlight", `[warn_Processed="true"]`)
-                processedRows.forEach(element => {
-                    element.removeAttribute("warn_Processed");
-                });
-            }
-
-
             // functions: whatsapp
 
             var tempSettings = [
@@ -2653,6 +2621,48 @@ a[href^="tel:"] {
                 }
             }
 
+            // function: alert accepted/arriveds styles
+
+            if (Settings.AlertAcceptedTime[global_USER_PROFILE] && loop_tabActive) {
+                var processedRows = []
+                const cur_alertAcceptTrips = global_activeTripsTable.filter(trip => trip.lateAccepted)
+
+                if (cur_alertAcceptTrips.length > 0) {
+                    cur_alertAcceptTrips.forEach(element => {
+                        var row = document.getElementById(element.tempId);
+                        row.classList.add("acceptedWarn-highlight")
+                        row.setAttribute("warn_Processed", "true")
+
+                        processedRows.push(row)
+                    });
+                }
+
+                clearClasses("acceptedWarn-highlight", `[warn_Processed="true"]`)
+                processedRows.forEach(element => {
+                    element.removeAttribute("warn_Processed");
+                });
+            }
+
+            if (Settings.AlertArrivedTime[global_USER_PROFILE] && loop_tabActive) {
+                var processedRows = []
+                const cur_alertArrivedTrips = global_activeTripsTable.filter(trip => trip.lateArrived)
+
+                if (cur_alertArrivedTrips.length > 0) {
+                    cur_alertArrivedTrips.forEach(element => {
+                        var row = document.getElementById(element.tempId);
+                        row.classList.add("arrivedWarn-highlight")
+                        row.setAttribute("warn_Processed", "true")
+
+                        processedRows.push(row)
+                    });
+                }
+
+                clearClasses("arrivedWarn-highlight", `[warn_Processed="true"]`)
+                processedRows.forEach(element => {
+                    element.removeAttribute("warn_Processed");
+                });
+            }
+
             //function: arrived ping
 
             if (Settings.PingArrivedTrips[global_USER_PROFILE]) {
@@ -2877,6 +2887,15 @@ a[href^="tel:"] {
 })();
 
 /*
+
+>> v1.1
+[bugfixes]
+- arrived/accepted warnings error when on doubletrip/booklater tab
+- fixed statistics not counting new trips properly
+- fixed issues related to the "FINISHING" trips status (e.g whatsapp, stats)
+
+[tweaks]
+- settings save files now loads regardless of script version
 
 >> v1.0
 first release NubeScript 2
