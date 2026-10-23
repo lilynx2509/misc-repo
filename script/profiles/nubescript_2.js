@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const global_SCRIPT_VERSION = 1.1
+    const global_SCRIPT_VERSION = 1.2
     var global_USER_PROFILE = 1
     var global_SETTINGS_SOURCE = "Settings: Script"
 
@@ -44,6 +44,7 @@
         TopBookingStats: [true, true],
         AlwaysShow100Trips: [true, true],
         ShowUserDetails: [true, true],
+        ClickWhenAccepted: [true, false],
 
         PingNewTrips: [true, true],
         PingNewAppTrips: [true, true],
@@ -75,6 +76,12 @@
             "https://audio.jukehost.co.uk/6ZUIedUF2GUwmECTn18c1Llj4AzkF0jn",
         ],
         SoundPingStarted_Volume: [0.3, 0.1],
+
+        SoundClickAccepted: [
+            "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0737%20-%20Click.mp3",
+            "https://cdn.jsdelivr.net/gh/AetherLynx/misc-repo@main/0737%20-%20Click.mp3",
+        ],
+        SoundClickAccepted_Volume: [0.1, 0.1],
 
         ElapsedTimeAccepted: [true, true],
         ElapsedTimeArrived: [true, true],
@@ -141,6 +148,7 @@
         CopyNumbersRightClick: [true, true],
         ShowBookLaterIcon: [true, true],
         LegacyDarkFilter: [false, false],
+        ShowDriverQuickDestination: [true, true],
 
         MasterLoopInterval: [200, 200],
     }
@@ -168,6 +176,7 @@
     var audio_NewApp = new Audio(Settings.SoundPingNewApp[global_USER_PROFILE])
     var audio_AlertAccept = new Audio(Settings.SoundAlertAccepted[global_USER_PROFILE])
     var audio_AlertArrived = new Audio(Settings.SoundAlertArrived[global_USER_PROFILE])
+    var audio_ClickAccepted = new Audio(Settings.SoundClickAccepted[global_USER_PROFILE])
 
     audio_Arrived.volume = Settings.SoundPingArrived_Volume[global_USER_PROFILE]
     audio_ArrivedWsp.volume = Settings.WspSoundPingArrived_Volume[global_USER_PROFILE]
@@ -176,6 +185,7 @@
     audio_NewApp.volume = Settings.SoundPingNewApp_Volume[global_USER_PROFILE]
     audio_AlertAccept.volume = Settings.SoundAlertAccepted_Volume[global_USER_PROFILE]
     audio_AlertArrived.volume = Settings.SoundAlertArrived_Volume[global_USER_PROFILE]
+    audio_ClickAccepted.volume = Settings.SoundClickAccepted_Volume[global_USER_PROFILE]
 
     // QUERIES
 
@@ -302,6 +312,7 @@
     var global_playArrivedPing = false;
     var global_playArrivedWspPing = false;
     var global_playStartedPing = false;
+    var global_playClickAccepted = false;
 
     var global_playAcceptedAlert = false;
     var global_playArrivedAlert = false;
@@ -314,8 +325,6 @@
     ]
 
     // ELEMENTS
-
-    var global_mapElement = document.getElementById("map");
 
     const element_bookingIcon = document.createElement('img')
     element_bookingIcon.setAttribute("isbookingicon", "true")
@@ -512,6 +521,16 @@
                     Shows a tag with the user type and payment method
                 </div>
             </button>
+            <button class="st_option" id="ShowDriverQuickDestination">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNy42NTcgNS4zMDRjLTMuMTI0LTMuMDczLTguMTg5LTMuMDczLTExLjMxMyAwYTcuNzggNy43OCAwIDAgMCAwIDExLjEzTDEyIDIxLjk5OWw1LjY1Ny01LjU2NWE3Ljc4IDcuNzggMCAwIDAgMC0xMS4xM00xMiAxMy40OTljLS42NjggMC0xLjI5NS0uMjYtMS43NjgtLjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwLTMuNTM2Yy40NzItLjQ3MiAxLjEtLjczMiAxLjc2OC0uNzMyczEuMjk2LjI2IDEuNzY4LjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwIDMuNTM2Yy0uNDcyLjQ3Mi0xLjEuNzMyLTEuNzY4LjczMiIvPjwvc3ZnPg==
+                " alt="">
+                <div style="width: 100%">
+                    <b>[NEW] Show Driver's Trip Data on Right Click</b>
+                    <br>
+                    Shows the driver's trip data when right clicked on the Map
+                </div>
+            </button>
         </div>
 
         <div class="st_body" id="st_tab2" style="display: none;">
@@ -601,6 +620,25 @@
 
                     <span>Ping Started Volume ( 0.1 - 1.0 ):</span>
                     <input class="st_input" type="number" id="SoundPingStarted_Volume">
+                </div>
+            </div>
+            <div class="st_wrapper">
+                <button class="st_option" id="ClickWhenAccepted">
+                    <img src="
+                    data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Im0xOC40NCAxMy43OTFsLTUuNDk5LTkuNTg1YTIuMSAyLjEgMCAwIDAtMS4yNzQtLjk4YTIuMTQgMi4xNCAwIDAgMC0xLjYwNy4yMDVsLTEuMTk2LjY5NmEuMi4yIDAgMCAwLS4wNzguMDZsLS4wNjkuMDg3YS42LjYgMCAwIDAtLjE0Ny4yNzVhMjUuNCAyNS40IDAgMCAxLTEuNTg4IDMuNzgzYTYuMSA2LjEgMCAwIDEtMS43NTQgMS44OTJsLTEuNzk0IDEuNTg4YTIuMTQgMi4xNCAwIDAgMC0uNjg2IDEuMjQ0YTIuMyAyLjMgMCAwIDAgLjA1OS45OGMtLjI0Ni4xMzYtLjQ2LjMyNC0uNjI3LjU1YTIuMSAyLjEgMCAwIDAtLjM2My43NDRhMi4yIDIuMiAwIDAgMCAwIC44MzNhMi4xNCAyLjE0IDAgMCAwIC44MDYgMS4zOTdjLjIyLjE2OC40NzMuMjkuNzQzLjM1OHEuMjY0LjA3MS41MzkuMDY4cS4xNDYuMDE1LjI5NCAwYy4yNzItLjAzMy41MzMtLjEyNy43NjQtLjI3NGMuMjE2LjI0My40ODkuNDI4Ljc5NC41NGMuMjM3LjA5My40OS4xNC43NDUuMTM2cS4yMDkuMDA1LjQxMi0uMDQ5bDEuNTk3IDIuODUzYTIuMTcgMi4xNyAwIDAgMCAxLjg0MyAxLjA1OGEyLjE0IDIuMTQgMCAwIDAgMi4wMzktMS41NzhhMi4yIDIuMiAwIDAgMC0uMjA2LTEuNjA3bC0xLjE5Ni0yLjA3OHEuNDg0LS4xMDguOTgtLjExOGMxLjM5NS4wNTkgMi43ODIuMjM2IDQuMTQ2LjUzaC4zNDNsLjE1Ny0uMDdsLjE0Ny0uMDg4bDEuMDQ5LS42MDdjLjQ4Mi0uMjc5LjgzNS0uNzM3Ljk4LTEuMjc0YTIuMTQgMi4xNCAwIDAgMC0uMzUzLTEuNTY5TTYuNTUxIDE2Ljk0OGEuNjUuNjUgMCAwIDEtLjQzMSAwYS42LjYgMCAwIDEtLjMyNC0uMjc1bC0xLjQ5LTIuNjA3bC0uMDk3LS4xNjdhLjY2LjY2IDAgMCAxIC4xMzctLjgyM2wxLjEwNy0uOThsLjQxMi43MjVsMi4xMjcgMy43MjV6bTEwLjY3NC0xLjk2YS43LjcgMCAwIDEtLjMwNC40MDFsLS41NDkuMzE0bC02LjEzNi0xMC42OTRsLjU1OS0uMzIzYS42LjYgMCAwIDEgLjQ4LS4wNTlhLjYzLjYzIDAgMCAxIC4zOTIuMjk0bDUuNDk5IDkuNTc2YS42Ni42NiAwIDAgMSAuMDU5LjU0OXptLS4yNTUtNS44MjNhLjcyLjcyIDAgMCAxLS42MzctLjM2MmEuNzM1LjczNSAwIDAgMSAuMjY1LS45OGwyLjQ1LTEuNDIyYS43MjUuNzI1IDAgMCAxIC45OC4yNjVhLjczNS43MzUgMCAwIDEtLjI2NS45OGwtMi40NSAxLjQyMWEuNy43IDAgMCAxLS4zNDMuMDk4bTQuNTE4IDMuNDdoLTIuODMyYS43MzUuNzM1IDAgMSAxIDAtMS40N2gyLjgzMmEuNzM1LjczNSAwIDAgMSAwIDEuNDdtLTYuODMxLTYuOTY5YS43LjcgMCAwIDEtLjM2My0uMDk4YS43MjYuNzI2IDAgMCAxLS4yNzQtLjk4bDEuNDExLTIuNDdhLjczNi43MzYgMCAwIDEgMS4yNzQuNzM1bC0xLjQxMSAyLjQ2YS43My43MyAwIDAgMS0uNjM3LjM1MyIvPjwvc3ZnPg==
+                    " alt="">
+                    <div style="width: 100%">
+                        <b>[NEW] Click when Trip's Accepted</b>
+                        <br>
+                        Plays a Click Sound whenever a Highlighted trip (For App: Needs Ping New App Trips ON) gets accepted.
+                    </div>
+                </button>
+                <div class="st_wrapper">
+                    <span>Click Accepted Source:</span>
+                    <input class="st_input" type="text" id="SoundClickAccepted">
+
+                    <span>Click Accepted Volume ( 0.1 - 1.0 ):</span>
+                    <input class="st_input" type="number" id="SoundClickAccepted_Volume">
                 </div>
             </div>
         </div>
@@ -1063,6 +1101,20 @@
     --d-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 40%);
     --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.mapSubtitle {
+    color-scheme: only light;
+
+    width: 100%;
+    padding: 10px;
+    color: #fff;
+    background: #312844;
+    border: 1px solid #7e6f9e;
+    border-radius: 2px;
+
+    display: flex;
+    margin-top: 10px;
 }
 
 .MuiSwitch-root, .MuiSwitch-root *{
@@ -1932,6 +1984,7 @@ a[href^="tel:"] {
             global_playArrivedPing = false;
             global_playArrivedWspPing = false;
             global_playStartedPing = false;
+            global_playClickAccepted = false;
 
 
 
@@ -2105,6 +2158,11 @@ a[href^="tel:"] {
                             if (tripBookedT !== "--") {
                                 const nyTime = getNYTime();
                                 var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
+
+                                if (loop_tabBookLater) {
+                                    bookedTimeDiff = bookedTimeDiff - 15
+                                }
+
                                 dataTimeBooked = bookedTimeDiff;
 
                                 const timeDiffTxt = document.createElement('span')
@@ -2287,8 +2345,6 @@ a[href^="tel:"] {
 
             // OUTERBOOKING LOOP (END)
 
-
-            // last time
             // function: statistics
             if (Settings.TopBookingStats[global_USER_PROFILE]) {
                 const actBookSpan = document.querySelector(query_ActiveBookSpan);
@@ -2723,10 +2779,91 @@ a[href^="tel:"] {
                 });
             }
 
+            // function: click accepted
+
+            if (Settings.ClickWhenAccepted[global_USER_PROFILE]) {
+                const cur_ownAcceptedTrips = global_activeTripsTable.filter(trip => trip.tripStatus == "ACCEPTED" && (trip.ownTrip || trip.appTrip));
+                const prev_ownAcceptedTrips = global_activeTripsTable_Dupe.filter(trip => trip.tripStatus == "NEW" && (trip.ownTrip || trip.appTrip));
+
+                cur_ownAcceptedTrips.forEach((element, index) => {
+                    var compareTrip = prev_ownAcceptedTrips.filter(trip => trip.userPhonenum == element.userPhonenum);
+
+                    if (compareTrip.length == 0) return;
+
+                    if (compareTrip[0].tripStatus == "NEW") {
+                        if (compareTrip[0].appTrip && Settings.PingNewAppTrips[global_USER_PROFILE]) {
+                            global_playClickAccepted = true;
+                        } else if (compareTrip[0].ownTrip) {
+                            global_playClickAccepted = true;
+                        }
+                    }
+                });
+            }
+
             // functions: play audios
             playAudio(audio_Arrived, global_playArrivedPing);
             playAudio(audio_ArrivedWsp, global_playArrivedWspPing);
             playAudio(audio_Started, global_playStartedPing);
+            playAudio(audio_ClickAccepted, global_playClickAccepted);
+
+
+            // function: show driver destination on middle click
+            if (Settings.ShowDriverQuickDestination[global_USER_PROFILE]) {
+                var mapElement = document.getElementById("map")
+
+                if (mapElement) {
+                    var mapSubtitle = document.getElementById("mapSubtitle")
+
+                    if (!mapSubtitle) {
+                        mapSubtitle = document.createElement("span")
+                        mapSubtitle.id = "mapSubtitle"
+                        mapSubtitle.classList.add("mapSubtitle")
+                        mapSubtitle.textContent = "Right click a driver to check their trip status."
+
+                        mapElement.parentElement.append(mapSubtitle);
+                    }
+
+                    var mapDrivers = mapElement.querySelectorAll("div[title]:not([hasListener])")
+
+                    mapDrivers.forEach(element => {
+                        element.addEventListener("contextmenu", function (event) {
+                            if (Settings.ShowDriverQuickDestination[global_USER_PROFILE]) {
+                                event.stopPropagation();
+                                var mapSubtitle = document.getElementById("mapSubtitle")
+                                var att = element.getAttribute("title")
+
+                                if (att && loop_tabActive) {
+                                    console.log("EVENT TRIGGERED")
+                                    var driverString = att;
+
+                                    driverString = driverString.replace(" - false", "")
+                                    driverString = driverString.replace(" - true", "")
+
+                                    driverString = driverString.trim();
+
+                                    const currentTrips = global_activeTripsTable.filter(trip => trip.assignedDriver == driverString)
+
+                                    if (currentTrips.length == 1) {
+                                        mapSubtitle.innerHTML = `[${currentTrips[0].tripStatus}] ${driverString} ends on<br>${currentTrips[0].dropoffAddress}.`
+                                    } else if (currentTrips.length > 1) {
+                                        mapSubtitle.textContent = `${driverString} has more than 1 trip! Please check the dashboard.`
+                                    } else if (currentTrips.length == 0) {
+                                        mapSubtitle.textContent = `${driverString} has no active trip(s).`;
+                                    }
+                                }
+
+                                element.setAttribute("hasListener", "true")
+                            }
+                        }, false)
+                    })
+
+                }
+            } else {
+                var mapSubtitle = document.getElementById("mapSubtitle")
+                if (mapSubtitle) {
+                    mapSubtitle.remove();
+                }
+            }
 
 
 
@@ -2907,6 +3044,14 @@ a[href^="tel:"] {
 })();
 
 /*
+>> v1.2
+[features]
+- option to play sound when a new (highlighted app/own) trip gets accepted
+- option to check trip data when right clicking a driver on the map
+
+[tweaks]
+- on book later tab, booked time tag shows how long til the booking activates
+
 >> v1.11
 [tweaks]
 - changed css of Mui switches so theyre visible on dark mode
