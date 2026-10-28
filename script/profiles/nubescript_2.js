@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const global_SCRIPT_VERSION = 1.2
+    const global_SCRIPT_VERSION = 1.21
     var global_USER_PROFILE = 1
     var global_SETTINGS_SOURCE = "Settings: Script"
 
@@ -149,8 +149,12 @@
         ShowBookLaterIcon: [true, true],
         LegacyDarkFilter: [false, false],
         ShowDriverQuickDestination: [true, true],
+        ShowPriceCalculations: [false, false],
 
         MasterLoopInterval: [200, 200],
+    }
+
+    var SettingsInternal = {
     }
 
     if (localStorage.getItem("SAVED_SETTINGS")) {
@@ -200,6 +204,8 @@
     const query_tripTag = "span.p-tag-value";
     const query_ActiveBookSpan = "span.text-xl.text-900.font-bold.mr-3";
     const query_CellCheckSymbol = "i.pi.pi-check";
+    const query_PopUpWindow = ".p-dialog.p-component.p-dialog-default.p-dialog-enter-done";
+    const query_BookingPaymentType = ".col-12.sm\\:col-12.md\\:col-12.lg\\:col-12.xl\\:col"
 
     // START DATA BLOCK
     // DATA
@@ -529,6 +535,16 @@
                     <b>[NEW] Show Driver's Trip Data on Right Click</b>
                     <br>
                     Shows the driver's trip data when right clicked on the Map
+                </div>
+            </button>
+            <button class="st_option" id="ShowPriceCalculations" style="display: none">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik01LjUgN0ExLjUgMS41IDAgMCAxIDQgNS41QTEuNSAxLjUgMCAwIDEgNS41IDRBMS41IDEuNSAwIDAgMSA3IDUuNUExLjUgMS41IDAgMCAxIDUuNSA3bTE1LjkxIDQuNThsLTktOUMxMi4wNSAyLjIyIDExLjU1IDIgMTEgMkg0Yy0xLjExIDAtMiAuODktMiAydjdjMCAuNTUuMjIgMS4wNS41OSAxLjQxbDguOTkgOWMuMzcuMzYuODcuNTkgMS40Mi41OXMxLjA1LS4yMyAxLjQxLS41OWw3LTdjLjM3LS4zNi41OS0uODYuNTktMS40MWMwLS41Ni0uMjMtMS4wNi0uNTktMS40MiIvPjwvc3ZnPg==
+                " alt="">
+                <div style="width: 100%">
+                    <b>[NEW] Show Card Price on Booking</b>
+                    <br>
+                    Shows a simple tag for Card payment's price (+8.90%) (Doesn't work if user has penalty)
                 </div>
             </button>
         </div>
@@ -1073,6 +1089,11 @@
         });
     }
 
+    var element_priceCalcs = document.createElement("span")
+    element_priceCalcs.id = "priceCalcs"
+    element_priceCalcs.classList.add("priceCalcs")
+
+
     // JS CSS
 
     var style = document.createElement('style');
@@ -1101,6 +1122,17 @@
     --d-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 40%);
     --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.priceCalcs {
+    color-scheme: only light;
+    background: #223247;
+    color: #acb2c3;
+    padding: 2px;
+    border: 1px solid #43546b;
+    display: flex;
+    justify-content: center;
+    border-radius: 4px;
 }
 
 .mapSubtitle {
@@ -2159,8 +2191,8 @@ a[href^="tel:"] {
                                 const nyTime = getNYTime();
                                 var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
 
-                                if (loop_tabBookLater) {
-                                    bookedTimeDiff = bookedTimeDiff - 15
+                                if (loop_tabBookLater && isBookLater) {
+                                    bookedTimeDiff = bookedTimeDiff + 15
                                 }
 
                                 dataTimeBooked = bookedTimeDiff;
@@ -2176,6 +2208,7 @@ a[href^="tel:"] {
                         } else {
                             const nyTime = getNYTime();
                             var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
+
                             dataTimeBooked = bookedTimeDiff;
                             const textGet = cells[3].querySelector('span[istimedtxt="true"]')
 
@@ -2826,6 +2859,7 @@ a[href^="tel:"] {
                     var mapDrivers = mapElement.querySelectorAll("div[title]:not([hasListener])")
 
                     mapDrivers.forEach(element => {
+
                         element.addEventListener("contextmenu", function (event) {
                             if (Settings.ShowDriverQuickDestination[global_USER_PROFILE]) {
                                 event.stopPropagation();
@@ -2844,7 +2878,7 @@ a[href^="tel:"] {
                                     const currentTrips = global_activeTripsTable.filter(trip => trip.assignedDriver == driverString)
 
                                     if (currentTrips.length == 1) {
-                                        mapSubtitle.innerHTML = `[${currentTrips[0].tripStatus}] ${driverString} ends on<br>${currentTrips[0].dropoffAddress}.`
+                                        mapSubtitle.innerHTML = `[${currentTrips[0].tripStatus}] ${driverString} (pick up / drop off)<br>${currentTrips[0].pickupAddress}<br>${currentTrips[0].dropoffAddress}.`
                                     } else if (currentTrips.length > 1) {
                                         mapSubtitle.textContent = `${driverString} has more than 1 trip! Please check the dashboard.`
                                     } else if (currentTrips.length == 0) {
@@ -2864,6 +2898,69 @@ a[href^="tel:"] {
                     mapSubtitle.remove();
                 }
             }
+
+            // function: popup functions
+
+            if (Settings.ShowPriceCalculations[global_USER_PROFILE]) {
+                const dialog = document.querySelector(query_PopUpWindow)
+
+
+                if (dialog && !dialog.getAttribute("exclude")) {
+                    const header = dialog.querySelector(".p-dialog-header")
+
+                    if (header.textContent == "Fare Estimate") {
+                        const priceCalcTag = document.getElementById(element_priceCalcs.id)
+
+                        if (!priceCalcTag) {
+                            var strings = dialog.querySelectorAll("h3")
+                            var penaltyModal = false;
+
+                            var result = [...strings].filter(elem => elem.textContent.startsWith("Total:") == true);
+
+                            if (result.length < 1) {
+                                strings[0].textContent = strings[0].textContent.match(/Total: \$[0-9]*\.[0-9]+$/)[0];
+                                penaltyModal = true;
+                                dialog.setAttribute("exclude", "true")
+                            } else {
+                                strings = result;
+                            }
+
+                            var priceBase = strings[0].textContent;
+                            priceBase = parseFloat(priceBase.match(/\$[0-9]*\.[0-9]+/)[0].replace('$', ''));
+
+                            const percentage = 8.90 / 100 // 8.90%
+                            var priceCard = priceBase + (priceBase * percentage)
+                            priceCard = Math.trunc(priceCard * 100) / 100; // to only show 2 decimals
+
+                            element_priceCalcs.textContent = `Card: $${priceCard} + $1.00 Wallet`
+
+                            if (penaltyModal) {
+                                //dialog.parentElement.append(element_priceCalcs) christian pq me haces esto
+                            } else {
+                                strings[0].insertAdjacentElement("beforebegin", element_priceCalcs)
+                            }
+
+                            const bookingPaymentType = document.querySelectorAll(query_BookingPaymentType)
+
+                            if (bookingPaymentType.length > 0) {
+                                if (bookingPaymentType[0].textContent.includes("Billetera")) {
+                                    element_priceCalcs.textContent = `Card: $${priceCard} (Check wallet)`
+                                }
+                            }
+
+                            if (penaltyModal) {
+                                element_priceCalcs.textContent += " (Incl. Penalty)";
+                            }
+
+                        }
+
+                        // [...strings].filter(elem => elem.textContent.startsWith("Total") == true)
+                        // parseFloat(dummy.match(/\$[0-9]*\.[0-9]+/)[0].replace('$', ''));
+                    }
+                }
+            }
+
+
 
 
 
@@ -3044,6 +3141,10 @@ a[href^="tel:"] {
 })();
 
 /*
+>> v1.21
+[tweaks]
+- fixed the book later booking ellapsed time it wasnt showing correctly
+
 >> v1.2
 [features]
 - option to play sound when a new (highlighted app/own) trip gets accepted
