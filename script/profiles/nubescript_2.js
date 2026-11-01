@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const global_SCRIPT_VERSION = 1.21
+    const global_SCRIPT_VERSION = 1.22
     var global_USER_PROFILE = 1
     var global_SETTINGS_SOURCE = "Settings: Script"
 
@@ -110,6 +110,7 @@
         WspTagsSystem: [true, true],
         WspHighlightTrip: [true, true], //unchangeable
         WspRememberTextbox: [true, true],
+        WspShowBookingTime: [true, true],
 
         WspArrivedSound: [true, true],
         WspSoundPingArrived: [
@@ -150,6 +151,7 @@
         LegacyDarkFilter: [false, false],
         ShowDriverQuickDestination: [true, true],
         ShowPriceCalculations: [false, false],
+        ShowActiveOnDoubleTrip: [true, true],
 
         MasterLoopInterval: [200, 200],
     }
@@ -251,6 +253,12 @@
         "REACHEDEXTRA": "whatsappstate_reached_paid",
         "PAID": "whatsappstate_reached_paid"
     }
+
+    const global_wspTimeTagList = [
+        "NEW",
+        "ACCEPTED",
+        "ARRIVED"
+    ]
 
     var global_todayDate = new Date().toLocaleDateString('en-US', { timeZone: 'America/New_York', month: 'numeric', day: 'numeric', year: 'numeric' });
     var global_ogConsoleLog = console.log;
@@ -532,17 +540,29 @@
                 data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNy42NTcgNS4zMDRjLTMuMTI0LTMuMDczLTguMTg5LTMuMDczLTExLjMxMyAwYTcuNzggNy43OCAwIDAgMCAwIDExLjEzTDEyIDIxLjk5OWw1LjY1Ny01LjU2NWE3Ljc4IDcuNzggMCAwIDAgMC0xMS4xM00xMiAxMy40OTljLS42NjggMC0xLjI5NS0uMjYtMS43NjgtLjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwLTMuNTM2Yy40NzItLjQ3MiAxLjEtLjczMiAxLjc2OC0uNzMyczEuMjk2LjI2IDEuNzY4LjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwIDMuNTM2Yy0uNDcyLjQ3Mi0xLjEuNzMyLTEuNzY4LjczMiIvPjwvc3ZnPg==
                 " alt="">
                 <div style="width: 100%">
-                    <b>[NEW] Show Driver's Trip Data on Right Click</b>
+                    <b>Show Driver's Trip Data on Right Click</b>
                     <br>
                     Shows the driver's trip data when right clicked on the Map
                 </div>
             </button>
+            <button class="st_option" id="ShowActiveOnDoubleTrip" style="border-color: #d6a92b">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNy42NTcgNS4zMDRjLTMuMTI0LTMuMDczLTguMTg5LTMuMDczLTExLjMxMyAwYTcuNzggNy43OCAwIDAgMCAwIDExLjEzTDEyIDIxLjk5OWw1LjY1Ny01LjU2NWE3Ljc4IDcuNzggMCAwIDAgMC0xMS4xM00xMiAxMy40OTljLS42NjggMC0xLjI5NS0uMjYtMS43NjgtLjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwLTMuNTM2Yy40NzItLjQ3MiAxLjEtLjczMiAxLjc2OC0uNzMyczEuMjk2LjI2IDEuNzY4LjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwIDMuNTM2Yy0uNDcyLjQ3Mi0xLjEuNzMyLTEuNzY4LjczMiIvPjwvc3ZnPg==
+                " alt="">
+                <div style="width: 100%">
+                    <b>Show Active Trip's data on Double Trip</b>
+                    <br>
+                    On Double trip tab, shows the double trip's assigned driver current active trip data
+                </div>
+            </button>
+
+
             <button class="st_option" id="ShowPriceCalculations" style="display: none">
                 <img src="
                 data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik01LjUgN0ExLjUgMS41IDAgMCAxIDQgNS41QTEuNSAxLjUgMCAwIDEgNS41IDRBMS41IDEuNSAwIDAgMSA3IDUuNUExLjUgMS41IDAgMCAxIDUuNSA3bTE1LjkxIDQuNThsLTktOUMxMi4wNSAyLjIyIDExLjU1IDIgMTEgMkg0Yy0xLjExIDAtMiAuODktMiAydjdjMCAuNTUuMjIgMS4wNS41OSAxLjQxbDguOTkgOWMuMzcuMzYuODcuNTkgMS40Mi41OXMxLjA1LS4yMyAxLjQxLS41OWw3LTdjLjM3LS4zNi41OS0uODYuNTktMS40MWMwLS41Ni0uMjMtMS4wNi0uNTktMS40MiIvPjwvc3ZnPg==
                 " alt="">
                 <div style="width: 100%">
-                    <b>[NEW] Show Card Price on Booking</b>
+                    <b>Show Card Price on Booking</b>
                     <br>
                     Shows a simple tag for Card payment's price (+8.90%) (Doesn't work if user has penalty)
                 </div>
@@ -639,12 +659,12 @@
                 </div>
             </div>
             <div class="st_wrapper">
-                <button class="st_option" id="ClickWhenAccepted">
+                <button class="st_option" id="ClickWhenAccepted" style="border-color: #d6a92b">
                     <img src="
                     data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Im0xOC40NCAxMy43OTFsLTUuNDk5LTkuNTg1YTIuMSAyLjEgMCAwIDAtMS4yNzQtLjk4YTIuMTQgMi4xNCAwIDAgMC0xLjYwNy4yMDVsLTEuMTk2LjY5NmEuMi4yIDAgMCAwLS4wNzguMDZsLS4wNjkuMDg3YS42LjYgMCAwIDAtLjE0Ny4yNzVhMjUuNCAyNS40IDAgMCAxLTEuNTg4IDMuNzgzYTYuMSA2LjEgMCAwIDEtMS43NTQgMS44OTJsLTEuNzk0IDEuNTg4YTIuMTQgMi4xNCAwIDAgMC0uNjg2IDEuMjQ0YTIuMyAyLjMgMCAwIDAgLjA1OS45OGMtLjI0Ni4xMzYtLjQ2LjMyNC0uNjI3LjU1YTIuMSAyLjEgMCAwIDAtLjM2My43NDRhMi4yIDIuMiAwIDAgMCAwIC44MzNhMi4xNCAyLjE0IDAgMCAwIC44MDYgMS4zOTdjLjIyLjE2OC40NzMuMjkuNzQzLjM1OHEuMjY0LjA3MS41MzkuMDY4cS4xNDYuMDE1LjI5NCAwYy4yNzItLjAzMy41MzMtLjEyNy43NjQtLjI3NGMuMjE2LjI0My40ODkuNDI4Ljc5NC41NGMuMjM3LjA5My40OS4xNC43NDUuMTM2cS4yMDkuMDA1LjQxMi0uMDQ5bDEuNTk3IDIuODUzYTIuMTcgMi4xNyAwIDAgMCAxLjg0MyAxLjA1OGEyLjE0IDIuMTQgMCAwIDAgMi4wMzktMS41NzhhMi4yIDIuMiAwIDAgMC0uMjA2LTEuNjA3bC0xLjE5Ni0yLjA3OHEuNDg0LS4xMDguOTgtLjExOGMxLjM5NS4wNTkgMi43ODIuMjM2IDQuMTQ2LjUzaC4zNDNsLjE1Ny0uMDdsLjE0Ny0uMDg4bDEuMDQ5LS42MDdjLjQ4Mi0uMjc5LjgzNS0uNzM3Ljk4LTEuMjc0YTIuMTQgMi4xNCAwIDAgMC0uMzUzLTEuNTY5TTYuNTUxIDE2Ljk0OGEuNjUuNjUgMCAwIDEtLjQzMSAwYS42LjYgMCAwIDEtLjMyNC0uMjc1bC0xLjQ5LTIuNjA3bC0uMDk3LS4xNjdhLjY2LjY2IDAgMCAxIC4xMzctLjgyM2wxLjEwNy0uOThsLjQxMi43MjVsMi4xMjcgMy43MjV6bTEwLjY3NC0xLjk2YS43LjcgMCAwIDEtLjMwNC40MDFsLS41NDkuMzE0bC02LjEzNi0xMC42OTRsLjU1OS0uMzIzYS42LjYgMCAwIDEgLjQ4LS4wNTlhLjYzLjYzIDAgMCAxIC4zOTIuMjk0bDUuNDk5IDkuNTc2YS42Ni42NiAwIDAgMSAuMDU5LjU0OXptLS4yNTUtNS44MjNhLjcyLjcyIDAgMCAxLS42MzctLjM2MmEuNzM1LjczNSAwIDAgMSAuMjY1LS45OGwyLjQ1LTEuNDIyYS43MjUuNzI1IDAgMCAxIC45OC4yNjVhLjczNS43MzUgMCAwIDEtLjI2NS45OGwtMi40NSAxLjQyMWEuNy43IDAgMCAxLS4zNDMuMDk4bTQuNTE4IDMuNDdoLTIuODMyYS43MzUuNzM1IDAgMSAxIDAtMS40N2gyLjgzMmEuNzM1LjczNSAwIDAgMSAwIDEuNDdtLTYuODMxLTYuOTY5YS43LjcgMCAwIDEtLjM2My0uMDk4YS43MjYuNzI2IDAgMCAxLS4yNzQtLjk4bDEuNDExLTIuNDdhLjczNi43MzYgMCAwIDEgMS4yNzQuNzM1bC0xLjQxMSAyLjQ2YS43My43MyAwIDAgMS0uNjM3LjM1MyIvPjwvc3ZnPg==
                     " alt="">
                     <div style="width: 100%">
-                        <b>[NEW] Click when Trip's Accepted</b>
+                        <b>Click when Trip's Accepted</b>
                         <br>
                         Plays a Click Sound whenever a Highlighted trip (For App: Needs Ping New App Trips ON) gets accepted.
                     </div>
@@ -775,6 +795,16 @@
                     <b>Remember WhatsApp Textbox</b>
                     <br>
                     Saves what you had typed in a WhatsApp chat
+                </div>
+            </button>
+            <button class="st_option" id="WspShowBookingTime" style="border-color: #d6a92b">
+                <img src="
+                data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgd2lkdGg9IjFlbSIgaGVpZ2h0PSIxZW0iPjxwYXRoIGZpbGw9IiNmZmZmZmYiIGQ9Ik0xNy42NTcgNS4zMDRjLTMuMTI0LTMuMDczLTguMTg5LTMuMDczLTExLjMxMyAwYTcuNzggNy43OCAwIDAgMCAwIDExLjEzTDEyIDIxLjk5OWw1LjY1Ny01LjU2NWE3Ljc4IDcuNzggMCAwIDAgMC0xMS4xM00xMiAxMy40OTljLS42NjggMC0xLjI5NS0uMjYtMS43NjgtLjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwLTMuNTM2Yy40NzItLjQ3MiAxLjEtLjczMiAxLjc2OC0uNzMyczEuMjk2LjI2IDEuNzY4LjczMmEyLjUwMyAyLjUwMyAwIDAgMSAwIDMuNTM2Yy0uNDcyLjQ3Mi0xLjEuNzMyLTEuNzY4LjczMiIvPjwvc3ZnPg==
+                " alt="">
+                <div style="width: 100%">
+                    <b>Book Later's Time on WhatsApp Chat</b>
+                    <br>
+                    On the WhatsApp chats menu, show a tag of the booking time for the book later of that same WhatsApp chat. (must click on book later tab to load it for the first time)
                 </div>
             </button>
             <div class="st_wrapper">
@@ -1093,6 +1123,8 @@
     element_priceCalcs.id = "priceCalcs"
     element_priceCalcs.classList.add("priceCalcs")
 
+    var element_wspTimeTag = `<span class="wspTimeTag">N/A</span>`
+
 
     // JS CSS
 
@@ -1122,6 +1154,21 @@
     --d-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 40%);
     --dd-phonecopy: color-mix(in srgb, var(--phonenumber-click-color), black 70%);
     --shadow1: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+}
+
+.wspTimeTag {
+    color-scheme: only light;
+    background: #382121;
+    color: #dac5c5;
+    padding: 2px;
+    border: 1px solid #523333;
+    display: flex;
+    flex-direction: row;
+    width: fit-content;
+    justify-content: start;
+    align-items: center;
+    gap: 10px;
+    border-radius: 4px;
 }
 
 .priceCalcs {
@@ -2209,6 +2256,10 @@ a[href^="tel:"] {
                             const nyTime = getNYTime();
                             var bookedTimeDiff = minuteDiff(tripBookedT, nyTime);
 
+                            if (loop_tabBookLater && isBookLater) {
+                                bookedTimeDiff = bookedTimeDiff + 15
+                            }
+
                             dataTimeBooked = bookedTimeDiff;
                             const textGet = cells[3].querySelector('span[istimedtxt="true"]')
 
@@ -2345,6 +2396,7 @@ a[href^="tel:"] {
                     // END OF ROW LOOP
                     var current_tripStorage = {
                         tempId: `trip_${loopTripCounter}`,
+                        tripTime: bookingHour,
                         tripStatus: tripStatus,
                         userPhonenum: tripPhonenum,
                         assignedDriver: driversName,
@@ -2449,7 +2501,7 @@ a[href^="tel:"] {
                     driverTagAssemble(filter_mainTrips, "driverTagIgnored")
                 }
 
-                if (loop_tabDoubleTrip) {
+                if (loop_tabDoubleTrip && Settings.ShowActiveOnDoubleTrip[global_USER_PROFILE]) {
                     if (global_doubleTripsTable.length > 0) {
                         global_doubleTripsTable.forEach((doubleTrip, index) => {
                             const activeTrip = global_activeTripsTable.find(
@@ -2516,6 +2568,7 @@ a[href^="tel:"] {
 
                         chatTabs.forEach(element => {
                             var chatNumber = element.querySelector(`a[href^="tel:"]`);
+                            var wspTimeTag = element.querySelector(".wspTimeTag")
                             chatNumber = formatPhoneNum(chatNumber.getAttribute('href'), true);
 
                             if (Settings.WspTagsSystem[global_USER_PROFILE]) {
@@ -2578,6 +2631,47 @@ a[href^="tel:"] {
                                 });
                             } else {
                                 removeClassesObject(global_wspClasses, element)
+
+                                if (loop_tabBookLater && wspTimeTag) {
+                                    wspTimeTag.remove();
+                                }
+                            }
+
+                            if (Settings.WspShowBookingTime[global_USER_PROFILE]) {
+                                var onPrevious = false;
+                                if (filter_wspMatches.length == 0 && !loop_tabBookLater) {
+                                    // current active tab doesnt have the booking, check last iteration of book laters table
+                                    filter_wspMatches = global_bookLaterTable.filter(trip => trip.userPhonenum == chatNumber)
+                                    onPrevious = true;
+                                }
+
+                                if (!wspTimeTag) {
+                                    if (filter_wspMatches.length > 0) {
+                                        if (filter_wspMatches[0].isBookLater && global_wspTimeTagList.includes(filter_wspMatches[0].tripStatus)) {
+                                            element.style.flexWrap = "wrap"
+
+                                            element.insertAdjacentHTML("beforeend", element_wspTimeTag)
+                                            wspTimeTag = element.querySelector(".wspTimeTag")
+
+                                            if (filter_wspMatches.length > 1) {
+                                                wspTimeTag.textContent = `Multiple bookings (${filter_wspMatches.length})`
+                                            } else {
+                                                wspTimeTag.textContent = filter_wspMatches[0].tripTime
+                                            }
+
+                                            wspTimeTag.insertAdjacentElement("afterbegin", element_bookingIcon.cloneNode(true));
+
+                                        }
+                                    }
+                                } else {
+                                    if (filter_wspMatches.length > 0) {
+                                        if (!onPrevious) {
+                                            if (filter_wspMatches[0].isBookLater && !global_wspTimeTagList.includes(filter_wspMatches[0].tripStatus)) {
+                                                wspTimeTag.remove();
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         });
                     } else if (wspHeader) {
@@ -3141,6 +3235,11 @@ a[href^="tel:"] {
 })();
 
 /*
+>> v1.22
+[features]
+- option to show the booking time for a whatsapp chat if the number matches a book later's
+- option to show the driver's active trip data on double trips in case it breaks with the update
+
 >> v1.21
 [tweaks]
 - fixed the book later booking ellapsed time it wasnt showing correctly
