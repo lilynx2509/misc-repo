@@ -12,7 +12,7 @@
 (function () {
     'use strict';
 
-    const global_SCRIPT_VERSION = 1.22
+    const global_SCRIPT_VERSION = 1.23
     var global_USER_PROFILE = 1
     var global_SETTINGS_SOURCE = "Settings: Script"
 
@@ -2081,7 +2081,7 @@ a[href^="tel:"] {
                     var tripBookedT = bookingHour.trim().replace(/^\[\d+m\]\s*/, '');
                     var tripPhonenum = cells[6]?.querySelector(`a[href^="tel:"]`);
                     tripPhonenum = formatPhoneNum(tripPhonenum.getAttribute('href'), true);
-                    const driversName = cells[7]?.querySelector('span')?.textContent.trim()
+                    var driversName = cells[7]?.querySelector('span')?.textContent.trim()
                     //const carType = cells[8]?.textContent.trim()
                     const pickupAddress = cells[9]?.querySelector('span')?.textContent.trim()
                     const dropoffAddress = cells[11]?.querySelector('span')?.textContent.trim()
@@ -2110,6 +2110,10 @@ a[href^="tel:"] {
 
                     var tripLateAccepted = false;
                     var tripLateArrived = false;
+
+                    if (driversName) {
+                        driversName = driversName.replace("Double trip", "")
+                    }
 
                     if (global_userLoopIgnore.includes(tripPhonenum)) return;
                     if (global_driverLoopIgnore.includes(driversName)) return;
@@ -2508,28 +2512,32 @@ a[href^="tel:"] {
                                 trip => trip.assignedDriver === doubleTrip.selectedDriver
                             );
 
-                            if (!activeTrip) {
-                                console.warn(
-                                    "No matching active trip for:",
-                                    doubleTrip.selectedDriver
-                                );
-                                return;
-                            }
-
                             const row = document.getElementById(doubleTrip.tempId);
                             const cell = row?.querySelectorAll('td[role="cell"]')[8];
                             const span = cell?.querySelector("span");
 
-                            if (span && !span.getAttribute("hasData")) {
-                                span.innerHTML = /*html*/
-                                    `
+                            if (activeTrip) {
+                                if (span && !span.getAttribute("hasData")) {
+                                    span.innerHTML = /*html*/
+                                        `
                                 <b>[${activeTrip.tripStatus}] Pick Up:</b><br>
                                 ${activeTrip.pickupAddress}<br><br>
                                 <b>Ends service on:</b><br>
                                 ${activeTrip.dropoffAddress}
                                 `;
 
-                                span.setAttribute("hasData", "true")
+                                    span.setAttribute("hasData", "true")
+                                }
+                            } else {
+                                if (span && !span.getAttribute("hasData")) {
+                                    span.innerHTML = /*html*/
+                                        `
+                                <b>Unable to get data from</b><br>
+                                ${doubleTrip.selectedDriver}
+                                `;
+
+                                    span.setAttribute("hasData", "true")
+                                }
                             }
                         });
                     }
@@ -3235,6 +3243,10 @@ a[href^="tel:"] {
 })();
 
 /*
+>> v1.23
+[tweaks]
+- added a temp fix to the double trip tag on drivers name 
+
 >> v1.22
 [features]
 - option to show the booking time for a whatsapp chat if the number matches a book later's
