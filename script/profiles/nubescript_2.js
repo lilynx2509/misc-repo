@@ -2112,7 +2112,7 @@ a[href^="tel:"] {
                     var tripLateArrived = false;
 
                     if (driversName) {
-                        driversName = driversName.replace("Double trip", "")
+                        driversName = driversName.replace("Double trip", "").trim();
                     }
 
                     if (global_userLoopIgnore.includes(tripPhonenum)) return;
